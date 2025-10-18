@@ -2,25 +2,24 @@
 "use client";
 import { useRouter } from "next/navigation";
 import Navbar from "@/components/Navbar";
-import TemplateCard from "@/components/TemplateCardProps";
 
 const templates = [
   { 
     id: "classic", 
     name: "Classic Professional", 
-    thumbnail: "/classic-preview.png",
+    thumbnail: "/assets/classic.png",
     description: "Traditional layout perfect for corporate environments"
   },
   { 
     id: "modern", 
     name: "Modern Two-Column", 
-    thumbnail: "/modern-preview.png",
+    thumbnail: "/assets/morden.png",
     description: "Contemporary design with sidebar layout"
   },
   { 
     id: "creative", 
     name: "Creative Minimalist", 
-    thumbnail: "/creative-preview.png",
+    thumbnail: "/assets/creative.png",
     description: "Clean, design-forward template with accent colors"
   },
 ];
@@ -49,12 +48,14 @@ export default function TemplatesPage() {
             <h2 className="text-2xl font-bold text-gray-800 mb-6">My Projects</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
               {userProjects.map((proj) => (
-                <TemplateCard
+                <div
                   key={proj.id}
-                  name={proj.name}
-                  thumbnail={proj.thumbnail}
                   onClick={() => router.push(`/editor/project/${proj.id}`)}
-                />
+                  className="cursor-pointer rounded-xl shadow-sm hover:shadow-md border border-gray-200 transition p-4 flex flex-col items-center"
+                >
+                  <img src={proj.thumbnail} alt={proj.name} className="rounded-md mb-3 w-full h-40 object-cover" />
+                  <h2 className="font-semibold text-black text-lg">{proj.name}</h2>
+                </div>
               ))}
             </div>
           </>
@@ -65,11 +66,13 @@ export default function TemplatesPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {templates.map((tpl) => (
             <div key={tpl.id} className="group">
-              <TemplateCard
-                name={tpl.name}
-                thumbnail={tpl.thumbnail}
+              <div
                 onClick={() => router.push(`/editor/${tpl.id}`)}
-              />
+                className="cursor-pointer rounded-xl shadow-sm hover:shadow-md border border-gray-200 transition p-4 flex flex-col items-center"
+              >
+                <img src={tpl.thumbnail} alt={tpl.name} className="rounded-md mb-3 w-full h-40 object-cover" />
+                <h2 className="font-semibold text-black text-lg">{tpl.name}</h2>
+              </div>
               <p className="text-sm text-gray-500 mt-2 text-center">{tpl.description}</p>
             </div>
           ))}

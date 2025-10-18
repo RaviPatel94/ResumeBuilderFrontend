@@ -16,7 +16,7 @@ export default function Hero() {
         </p>
         <button
           onClick={() => router.push("/templates")}
-          className="px-6 py-3 rounded-lg bg-[#10B981] text-white font-semibold hover:bg-[#0F9A6B] transition"
+          className="px-6 py-3 cursor-pointer rounded-lg bg-[#10B981] text-white font-semibold hover:bg-[#0F9A6B] transition"
         >
           Get Started
         </button>

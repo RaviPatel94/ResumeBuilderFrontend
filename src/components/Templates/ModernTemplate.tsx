@@ -1,34 +1,80 @@
-// components/Templates/CreativeTemplate.tsx
 "use client";
 import React from "react";
+import { useSelector, useDispatch } from "react-redux";
+import { RootState, AppDispatch } from "@/store/store";
+import { deleteSection, duplicateSection } from "@/store/resumeSlice";
+import { Trash2, Copy } from "lucide-react";
 import { Section } from "../Resume";
 
-interface CreativeTemplateProps {
-  name: string;
-  title: string;
-  sections: Section[];
-  contact?: {
-    email?: string;
-    phone?: string;
-    location?: string;
-    linkedin?: string;
-  };
+function EditableSection({
+  section,
+  onDelete,
+  onDuplicate,
+  children,
+}: {
+  section: Section;
+  onDelete: () => void;
+  onDuplicate: () => void;
+  children: React.ReactNode;
+}) {
+  const [isHovered, setIsHovered] = React.useState(false);
+
+  return (
+    <div
+      className="relative"
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
+      {isHovered && (
+        <div className="absolute -right-4 bottom-0 flex flex-col gap-2 z-50">
+          <button
+            onClick={onDuplicate}
+            className="p-2 bg-blue-500 text-white rounded hover:bg-blue-600 shadow-lg"
+            title="Duplicate section"
+          >
+            <Copy size={16} />
+          </button>
+          <button
+            onClick={onDelete}
+            className="p-2 bg-red-500 text-white rounded hover:bg-red-600 shadow-lg"
+            title="Delete section"
+          >
+            <Trash2 size={16} />
+          </button>
+        </div>
+      )}
+      {children}
+    </div>
+  );
 }
 
-export default function CreativeTemplate({ name, title, sections, contact }: CreativeTemplateProps) {
+export default function ModernTemplate() {
+  const dispatch = useDispatch<AppDispatch>();
+  const resume = useSelector((state: RootState) => state.resume.resume);
+
+  const handleDelete = (id: string) => dispatch(deleteSection(id));
+  const handleDuplicate = (id: string) => dispatch(duplicateSection(id));
+
+  const name = resume?.name ?? "";
+  const title = resume?.title ?? "";
+  const sections = resume?.sections ?? [];
+  const contact = resume?.contact;
+  const skills = resume?.skills ?? [];
+
   return (
-    <div className="max-w-5xl mx-auto bg-white shadow-lg overflow-hidden">
-      {/* Colorful Header */}
-      <div className="bg-gradient-to-r from-purple-500 via-pink-500 to-red-500 text-white p-8">
-        <h1 
-          className="text-4xl font-bold mb-2"
+    <div className="w-[8.5in] h-[11in] mx-auto bg-white shadow-2xl border border-gray-200 overflow-visible flex flex-col">
+      {/* Minimalist Header */}
+      <div className="bg-black text-white p-6 flex-shrink-0">
+        <h1
+          className="text-3xl font-thin tracking-wide mb-2"
           contentEditable
           suppressContentEditableWarning={true}
         >
-          {name}
+          {name.toUpperCase()}
         </h1>
-        <h2 
-          className="text-xl opacity-90"
+        <div className="w-16 h-px bg-white mb-2"></div>
+        <h2
+          className="text-base font-light tracking-wider"
           contentEditable
           suppressContentEditableWarning={true}
         >
@@ -36,112 +82,98 @@ export default function CreativeTemplate({ name, title, sections, contact }: Cre
         </h2>
       </div>
 
-      <div className="flex">
-        {/* Left Column - Contact & Skills */}
-        <div className="w-1/3 bg-gradient-to-b from-purple-50 to-pink-50 p-6">
-          {/* Contact Section */}
+      {/* Content Area */}
+      <div className="flex-1 p-6">
+        <div className="h-full">
+          {/* Contact Info */}
           {contact && (
-            <div className="mb-8">
-              <h3 className="text-lg font-bold text-purple-700 mb-4 border-b-2 border-purple-300 pb-2">
-                CONTACT
+            <div className="flex flex-wrap gap-2 mb-6 pb-4 border-b border-gray-200">
+              {contact.email && (
+                <span
+                  className="px-3 py-1 bg-gray-100 text-gray-700 text-xs rounded-full border"
+                  contentEditable
+                  suppressContentEditableWarning={true}
+                >
+                  {contact.email}
+                </span>
+              )}
+              {contact.phone && (
+                <span
+                  className="px-3 py-1 bg-gray-100 text-gray-700 text-xs rounded-full border"
+                  contentEditable
+                  suppressContentEditableWarning={true}
+                >
+                  {contact.phone}
+                </span>
+              )}
+              {contact.location && (
+                <span
+                  className="px-3 py-1 bg-gray-100 text-gray-700 text-xs rounded-full border"
+                  contentEditable
+                  suppressContentEditableWarning={true}
+                >
+                  {contact.location}
+                </span>
+              )}
+              {contact.linkedin && (
+                <span
+                  className="px-3 py-1 bg-gray-100 text-gray-700 text-xs rounded-full border"
+                  contentEditable
+                  suppressContentEditableWarning={true}
+                >
+                  {contact.linkedin}
+                </span>
+              )}
+            </div>
+          )}
+
+          {/* Skills */}
+          {skills.length > 0 && (
+            <div className="mb-6">
+              <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">
+                Skills
               </h3>
-              <div className="space-y-3 text-sm text-gray-700">
-                <div className="flex items-center">
-                  <div className="w-3 h-3 bg-purple-400 rounded-full mr-3"></div>
-                  <span contentEditable suppressContentEditableWarning={true}>{contact.email}</span>
-                </div>
-                <div className="flex items-center">
-                  <div className="w-3 h-3 bg-pink-400 rounded-full mr-3"></div>
-                  <span contentEditable suppressContentEditableWarning={true}>{contact.phone}</span>
-                </div>
-                <div className="flex items-center">
-                  <div className="w-3 h-3 bg-red-400 rounded-full mr-3"></div>
-                  <span contentEditable suppressContentEditableWarning={true}>{contact.location}</span>
-                </div>
-                <div className="flex items-center">
-                  <div className="w-3 h-3 bg-purple-400 rounded-full mr-3"></div>
-                  <span contentEditable suppressContentEditableWarning={true}>{contact.linkedin}</span>
-                </div>
+              <div className="flex flex-wrap gap-2">
+                {skills.map((skill: String, index: number) => (
+                  <span
+                    key={index}
+                    className="px-2 py-1 bg-black text-white text-xs font-medium"
+                    contentEditable
+                    suppressContentEditableWarning={true}
+                  >
+                    {skill}
+                  </span>
+                ))}
               </div>
             </div>
           )}
 
-          {/* Education in Left Column */}
-          {sections.find(s => s.id === 'education') && (
-            <div className="mb-8">
-              <h3 className="text-lg font-bold text-pink-700 mb-4 border-b-2 border-pink-300 pb-2">
-                EDUCATION
-              </h3>
-              <div 
-                className="text-sm text-gray-700 leading-relaxed"
-                contentEditable
-                suppressContentEditableWarning={true}
-              >
-                {sections.find(s => s.id === 'education')?.content}
+          {/* Main Sections */}
+          {sections.map((section: Section) => (
+            <EditableSection
+              key={section.id}
+              section={section}
+              onDelete={() => handleDelete(section.id)}
+              onDuplicate={() => handleDuplicate(section.id)}
+            >
+              <div className="mb-6">
+                <h3
+                  className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3 pb-2 border-b-2 border-black"
+                  contentEditable
+                  suppressContentEditableWarning={true}
+                >
+                  {section.title}
+                </h3>
+                <div
+                  className="text-gray-700 text-sm leading-relaxed"
+                  contentEditable
+                  suppressContentEditableWarning={true}
+                >
+                  {section.content}
+                </div>
               </div>
-            </div>
-          )}
-
-          {/* Projects in Left Column */}
-          {sections.find(s => s.id === 'projects') && (
-            <div>
-              <h3 className="text-lg font-bold text-red-700 mb-4 border-b-2 border-red-300 pb-2">
-                PROJECTS
-              </h3>
-              <div 
-                className="text-sm text-gray-700 leading-relaxed"
-                contentEditable
-                suppressContentEditableWarning={true}
-              >
-                {sections.find(s => s.id === 'projects')?.content}
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Right Column - Main Content */}
-        <div className="w-2/3 p-8">
-          {/* Summary */}
-          {sections.find(s => s.id === 'summary') && (
-            <div className="mb-8">
-              <h3 
-                className="text-2xl font-bold text-gray-800 mb-4 flex items-center"
-                contentEditable
-                suppressContentEditableWarning={true}
-              >
-                <div className="w-4 h-4 bg-gradient-to-r from-purple-400 to-pink-400 mr-3"></div>
-                {sections.find(s => s.id === 'summary')?.title}
-              </h3>
-              <div 
-                className="text-gray-700 leading-relaxed border-l-4 border-purple-300 pl-4"
-                contentEditable
-                suppressContentEditableWarning={true}
-              >
-                {sections.find(s => s.id === 'summary')?.content}
-              </div>
-            </div>
-          )}
-
-          {/* Experience */}
-          {sections.find(s => s.id === 'experience') && (
-            <div className="mb-8">
-              <h3 
-                className="text-2xl font-bold text-gray-800 mb-4 flex items-center"
-                contentEditable
-                suppressContentEditableWarning={true}
-              >
-                <div className="w-4 h-4 bg-gradient-to-r from-pink-400 to-red-400 mr-3"></div>
-                {sections.find(s => s.id === 'experience')?.title}
-              </h3>
-              <div 
-                className="text-gray-700 leading-relaxed border-l-4 border-pink-300 pl-4"
-                contentEditable
-                suppressContentEditableWarning={true}
-              >
-                {sections.find(s => s.id === 'experience')?.content}
-              </div>
-            </div>
-          )}
+            </EditableSection>
+          ))}
         </div>
       </div>
     </div>
