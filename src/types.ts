@@ -15,6 +15,7 @@ export interface ContactInfo {
 }
 
 
+
 export interface ResumeData {
   name: string;
   title: string;
@@ -26,4 +27,37 @@ export interface ResumeData {
   };
   sections: Section[];
   skills: String[];
+}
+
+export interface Contact {
+  email: string;
+  phone: string;
+  location: string;
+  linkedin: string;
+}
+
+export interface Resume {
+  name: string;
+  title: string;
+  contact: Contact;
+  sections: Section[];
+  skills?: string[];
+}
+
+export interface StyleProps {
+  nameSize?: number;
+  nameColor?: string;
+  nameBold?: boolean;
+  titleSize?: number;
+  titleColor?: string;
+  titleBold?: boolean;
+  contactSize?: number;
+  contactColor?: string;
+  contactBold?: boolean;
+  headerSize?: number;
+  headerColor?: string;
+  headerBold?: boolean;
+  bodySize?: number;
+  bodyColor?: string;
+  bodyBold?: boolean;
 }

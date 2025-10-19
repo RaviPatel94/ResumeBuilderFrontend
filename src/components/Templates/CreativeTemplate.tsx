@@ -1,10 +1,10 @@
 "use client";
-import React from "react";
+import React, { ReactNode } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { RootState, AppDispatch } from "@/store/store";
-import { deleteSection, duplicateSection } from "@/store/resumeSlice";
+import { deleteSection, duplicateSection, updateResume } from "@/store/resumeSlice";
+import { Section, StyleProps } from "@/types";
 import { Trash2, Copy } from "lucide-react";
-import { Section } from "../Resume";
 
 function EditableSection({
   section,
@@ -15,7 +15,7 @@ function EditableSection({
   section: Section;
   onDelete: () => void;
   onDuplicate: () => void;
-  children: React.ReactNode;
+  children: ReactNode;
 }) {
   const [isHovered, setIsHovered] = React.useState(false);
   return (
@@ -25,17 +25,17 @@ function EditableSection({
       onMouseLeave={() => setIsHovered(false)}
     >
       {isHovered && (
-        <div className="absolute -right-12 top-0 flex flex-col gap-2 z-10">
+        <div className="absolute left-0.5 right-0.5 -top-8 flex flex-row items-center justify-center gap-2 z-10">
           <button
             onClick={onDuplicate}
-            className="p-2 bg-blue-500 text-white rounded hover:bg-blue-600 shadow-lg"
+            className="p-2 h-8 w-8 cursor-pointer bg-blue-500 text-white rounded hover:bg-blue-600 shadow-lg"
             title="Duplicate section"
           >
             <Copy size={16} />
           </button>
           <button
             onClick={onDelete}
-            className="p-2 bg-red-500 text-white rounded hover:bg-red-600 shadow-lg"
+            className="p-2 h-8 w-8 cursor-pointer bg-red-500 text-white rounded hover:bg-red-600 shadow-lg"
             title="Delete section"
           >
             <Trash2 size={16} />
@@ -47,217 +47,250 @@ function EditableSection({
   );
 }
 
-export default function CreativeTemplate() {
+export default function CreativeTemplate({
+  nameSize = 36,
+  nameColor = "#fff",
+  nameBold = true,
+  titleSize = 16,
+  titleColor = "#fff",
+  titleBold = false,
+  contactSize = 12,
+  contactColor = "#5b21b6",
+  contactBold = false,
+  headerSize = 18,
+  headerColor = "#d946ef",
+  headerBold = true,
+  bodySize = 14,
+  bodyColor = "#444",
+  bodyBold = false,
+}: StyleProps = {}) {
   const dispatch = useDispatch<AppDispatch>();
   const resume = useSelector((state: RootState) => state.resume.resume);
-  const { name, title, sections, contact, skills } = resume;
+  const [pageBreaks, setPageBreaks] = React.useState<number[]>([]);
+  const contentRef = React.useRef<HTMLDivElement>(null);
 
   const handleDelete = (id: string) => dispatch(deleteSection(id));
   const handleDuplicate = (id: string) => dispatch(duplicateSection(id));
 
+  // Text change handlers
+  const handleTextChange = (type: 'name' | 'title', value: string) => {
+    dispatch(updateResume({
+      ...resume,
+      [type]: value
+    }));
+  };
+
+  const handleContactChange = (field: 'email' | 'phone' | 'location' | 'linkedin', value: string) => {
+    dispatch(updateResume({
+      ...resume,
+      contact: {
+        ...resume.contact,
+        [field]: value
+      }
+    }));
+  };
+
+  const handleSectionChange = (sectionId: string, field: 'title' | 'content', value: string) => {
+    dispatch(updateResume({
+      ...resume,
+      sections: resume.sections.map(section =>
+        section.id === sectionId
+          ? { ...section, [field]: value }
+          : section
+      )
+    }));
+  };
+
+  const handleSkillChange = (index: number, value: string) => {
+    const newSkills = [...(resume.skills || [])];
+    newSkills[index] = value;
+    dispatch(updateResume({
+      ...resume,
+      skills: newSkills
+    }));
+  };
+
+  React.useEffect(() => {
+    const calculatePageBreaks = () => {
+      if (!contentRef.current) return;
+      const PAGE_HEIGHT = 1056;
+      const HEADER_HEIGHT = contentRef.current.querySelector('.resume-header')?.clientHeight || 0;
+      const availableHeight = PAGE_HEIGHT - HEADER_HEIGHT;
+      const sections = contentRef.current.querySelectorAll('.resume-section');
+      let currentHeight = 0;
+      const breaks: number[] = [];
+      sections.forEach((section, index) => {
+        const sectionHeight = section.clientHeight;
+        if (currentHeight + sectionHeight > availableHeight) {
+          breaks.push(index);
+          currentHeight = sectionHeight;
+        } else {
+          currentHeight += sectionHeight;
+        }
+      });
+      setPageBreaks(breaks);
+    };
+    calculatePageBreaks();
+    window.addEventListener('resize', calculatePageBreaks);
+    const observer = new MutationObserver(calculatePageBreaks);
+    if (contentRef.current) {
+      observer.observe(contentRef.current, {
+        childList: true,
+        subtree: true,
+        characterData: true,
+      });
+    }
+    return () => {
+      window.removeEventListener('resize', calculatePageBreaks);
+      observer.disconnect();
+    };
+  }, [resume.sections, resume.skills]);
+
   return (
-    <div className="w-[8.5in] h-[11in] mx-auto bg-white shadow-lg overflow-hidden flex flex-col">
+    <div ref={contentRef} className="w-[816px] min-h-[1056px] mx-auto bg-white shadow-lg overflow-hidden flex flex-col">
       {/* Colorful Header */}
-      <div className="bg-gradient-to-r from-purple-500 via-pink-500 to-red-500 text-white p-6 flex-shrink-0">
+      <div className="resume-header bg-gradient-to-r from-purple-500 via-pink-500 to-red-500 text-white p-6 flex-shrink-0">
         <h1
-          className="text-3xl font-bold mb-1"
+          style={{ 
+            color: nameColor,
+            fontSize: `${nameSize}px`,
+            fontWeight: nameBold ? 'bold' : 'normal'
+          }}
           contentEditable
           suppressContentEditableWarning={true}
+          onBlur={(e) => handleTextChange('name', e.currentTarget.textContent || '')}
         >
-          {name}
+          {resume.name}
         </h1>
         <h2
-          className="text-base opacity-90"
+          className="opacity-90 mt-1"
+          style={{ 
+            color: titleColor,
+            fontSize: `${titleSize}px`,
+            fontWeight: titleBold ? 'bold' : 'normal'
+          }}
           contentEditable
           suppressContentEditableWarning={true}
+          onBlur={(e) => handleTextChange('title', e.currentTarget.textContent || '')}
         >
-          {title}
+          {resume.title}
         </h2>
       </div>
+
       <div className="flex flex-1 overflow-hidden">
+        {/* Left Column */}
         <div className="w-[35%] bg-gradient-to-b from-purple-50 to-pink-50 p-5 overflow-y-auto flex-shrink-0">
-          {contact && (
+          {resume.contact && (
             <div className="mb-6">
-              <h3 className="text-base font-bold text-purple-700 mb-3 border-b-2 border-purple-300 pb-2">
+              <h3 
+                className="mb-3 border-b-2 border-purple-300 pb-2"
+                style={{ 
+                  color: headerColor,
+                  fontSize: `${headerSize}px`,
+                  fontWeight: headerBold ? 'bold' : 'normal'
+                }}
+              >
                 CONTACT
               </h3>
-              <div className="space-y-2 text-xs text-gray-700">
-                {contact.email && (
+              <div className="space-y-2">
+                {resume.contact.email && (
                   <div className="flex items-center">
                     <div className="w-2 h-2 bg-purple-400 rounded-full mr-2"></div>
-                    <span contentEditable suppressContentEditableWarning={true}>
-                      {contact.email}
+                    <span
+                      style={{ 
+                        color: contactColor,
+                        fontSize: `${contactSize}px`,
+                        fontWeight: contactBold ? 'bold' : 'normal'
+                      }}
+                      contentEditable
+                      suppressContentEditableWarning={true}
+                      onBlur={(e) => handleContactChange('email', e.currentTarget.textContent || '')}
+                    >
+                      {resume.contact.email}
                     </span>
                   </div>
                 )}
-                {contact.phone && (
+                {resume.contact.phone && (
                   <div className="flex items-center">
                     <div className="w-2 h-2 bg-pink-400 rounded-full mr-2"></div>
-                    <span contentEditable suppressContentEditableWarning={true}>
-                      {contact.phone}
+                    <span
+                      style={{ 
+                        color: contactColor,
+                        fontSize: `${contactSize}px`,
+                        fontWeight: contactBold ? 'bold' : 'normal'
+                      }}
+                      contentEditable
+                      suppressContentEditableWarning={true}
+                      onBlur={(e) => handleContactChange('phone', e.currentTarget.textContent || '')}
+                    >
+                      {resume.contact.phone}
                     </span>
                   </div>
                 )}
-                {contact.location && (
+                {resume.contact.location && (
                   <div className="flex items-center">
                     <div className="w-2 h-2 bg-red-400 rounded-full mr-2"></div>
-                    <span contentEditable suppressContentEditableWarning={true}>
-                      {contact.location}
+                    <span
+                      style={{ 
+                        color: contactColor,
+                        fontSize: `${contactSize}px`,
+                        fontWeight: contactBold ? 'bold' : 'normal'
+                      }}
+                      contentEditable
+                      suppressContentEditableWarning={true}
+                      onBlur={(e) => handleContactChange('location', e.currentTarget.textContent || '')}
+                    >
+                      {resume.contact.location}
                     </span>
                   </div>
                 )}
-                {contact.linkedin && (
+                {resume.contact.linkedin && (
                   <div className="flex items-center">
                     <div className="w-2 h-2 bg-purple-400 rounded-full mr-2"></div>
-                    <span contentEditable suppressContentEditableWarning={true}>
-                      {contact.linkedin}
+                    <span
+                      style={{ 
+                        color: contactColor,
+                        fontSize: `${contactSize}px`,
+                        fontWeight: contactBold ? 'bold' : 'normal'
+                      }}
+                      contentEditable
+                      suppressContentEditableWarning={true}
+                      onBlur={(e) => handleContactChange('linkedin', e.currentTarget.textContent || '')}
+                    >
+                      {resume.contact.linkedin}
                     </span>
                   </div>
                 )}
               </div>
             </div>
           )}
-          {sections.find((s) => s.id === "education") && (
-            <EditableSection
-              section={sections.find((s) => s.id === "education")!}
-              onDelete={() => handleDelete("education")}
-              onDuplicate={() => handleDuplicate("education")}
-            >
-              <div className="mb-6">
-                <h3 className="text-base font-bold text-pink-700 mb-3 border-b-2 border-pink-300 pb-2">
-                  EDUCATION
-                </h3>
-                <div
-                  className="text-xs text-gray-700 leading-relaxed"
-                  contentEditable
-                  suppressContentEditableWarning={true}
-                >
-                  {sections.find((s) => s.id === "education")?.content}
-                </div>
-              </div>
-            </EditableSection>
-          )}
-          {sections.find((s) => s.id === "projects") && (
-            <EditableSection
-              section={sections.find((s) => s.id === "projects")!}
-              onDelete={() => handleDelete("projects")}
-              onDuplicate={() => handleDuplicate("projects")}
-            >
-              <div>
-                <h3 className="text-base font-bold text-red-700 mb-3 border-b-2 border-red-300 pb-2">
-                  PROJECTS
-                </h3>
-                <div
-                  className="text-xs text-gray-700 leading-relaxed"
-                  contentEditable
-                  suppressContentEditableWarning={true}
-                >
-                  {sections.find((s) => s.id === "projects")?.content}
-                </div>
-              </div>
-            </EditableSection>
-          )}
-        </div>
-        <div className="flex-1 p-6 overflow-y-auto">
-          {sections.find((s) => s.id === "summary") && (
-            <EditableSection
-              section={sections.find((s) => s.id === "summary")!}
-              onDelete={() => handleDelete("summary")}
-              onDuplicate={() => handleDuplicate("summary")}
-            >
-              <div className="mb-6">
-                <h3
-                  className="text-xl font-bold text-gray-800 mb-3 flex items-center"
-                  contentEditable
-                  suppressContentEditableWarning={true}
-                >
-                  <div className="w-3 h-3 bg-gradient-to-r from-purple-400 to-pink-400 mr-2"></div>
-                  {sections.find((s) => s.id === "summary")?.title}
-                </h3>
-                <div
-                  className="text-gray-700 text-sm leading-relaxed border-l-4 border-purple-300 pl-4"
-                  contentEditable
-                  suppressContentEditableWarning={true}
-                >
-                  {sections.find((s) => s.id === "summary")?.content}
-                </div>
-              </div>
-            </EditableSection>
-          )}
-          {sections.find((s) => s.id === "experience") && (
-            <EditableSection
-              section={sections.find((s) => s.id === "experience")!}
-              onDelete={() => handleDelete("experience")}
-              onDuplicate={() => handleDuplicate("experience")}
-            >
-              <div className="mb-6">
-                <h3
-                  className="text-xl font-bold text-gray-800 mb-3 flex items-center"
-                  contentEditable
-                  suppressContentEditableWarning={true}
-                >
-                  <div className="w-3 h-3 bg-gradient-to-r from-pink-400 to-red-400 mr-2"></div>
-                  {sections.find((s) => s.id === "experience")?.title}
-                </h3>
-                <div
-                  className="text-gray-700 text-sm leading-relaxed border-l-4 border-pink-300 pl-4"
-                  contentEditable
-                  suppressContentEditableWarning={true}
-                >
-                  {sections.find((s) => s.id === "experience")?.content}
-                </div>
-              </div>
-            </EditableSection>
-          )}
-          {sections
-            .filter(
-              (s) =>
-                ![
-                  "summary",
-                  "experience",
-                  "education",
-                  "projects",
-                ].includes(s.id)
-            )
-            .map((section) => (
-              <EditableSection
-                key={section.id}
-                section={section}
-                onDelete={() => handleDelete(section.id)}
-                onDuplicate={() => handleDuplicate(section.id)}
-              >
-                <div className="mb-6">
-                  <h3
-                    className="text-xl font-bold text-gray-800 mb-3 flex items-center"
-                    contentEditable
-                    suppressContentEditableWarning={true}
-                  >
-                    <div className="w-3 h-3 bg-gradient-to-r from-purple-400 to-pink-400 mr-2"></div>
-                    {section.title}
-                  </h3>
-                  <div
-                    className="text-gray-700 text-sm leading-relaxed border-l-4 border-purple-300 pl-4"
-                    contentEditable
-                    suppressContentEditableWarning={true}
-                  >
-                    {section.content}
-                  </div>
-                </div>
-              </EditableSection>
-            ))}
-          {/* Skills Section */}
-          {skills && skills.length > 0 && (
+
+          {/* Skills Section in Left Column */}
+          {resume.skills && resume.skills.length > 0 && (
             <div className="mb-6">
-              <h3 className="text-base font-bold text-purple-700 mb-3 border-b-2 border-purple-300 pb-2">
+              <h3
+                className="mb-3 border-b-2 border-purple-300 pb-2"
+                style={{ 
+                  color: headerColor,
+                  fontSize: `${headerSize}px`,
+                  fontWeight: headerBold ? 'bold' : 'normal'
+                }}
+              >
                 SKILLS
               </h3>
               <div className="flex flex-wrap gap-2 mt-2">
-                {skills.map((skill, idx) => (
+                {resume.skills.map((skill, idx) => (
                   <span
                     key={idx}
-                    className="bg-pink-200 px-2 py-1 rounded font-mono text-xs"
+                    className="bg-pink-200 px-2 py-1 rounded font-mono"
+                    style={{ 
+                      color: bodyColor,
+                      fontSize: `${bodySize}px`,
+                      fontWeight: bodyBold ? 'bold' : 'normal'
+                    }}
                     contentEditable
                     suppressContentEditableWarning={true}
+                    onBlur={(e) => handleSkillChange(idx, e.currentTarget.textContent || '')}
                   >
                     {skill}
                   </span>
@@ -265,6 +298,57 @@ export default function CreativeTemplate() {
               </div>
             </div>
           )}
+        </div>
+
+        {/* Right Column */}
+        <div className="flex-1 p-6 overflow-y-auto">
+          {resume.sections.map((section, index) => (
+            <React.Fragment key={section.id}>
+              {pageBreaks.includes(index) && (
+                <div className="my-8">
+                  <div className="h-3 bg-gradient-to-b from-white via-gray-100 to-gray-300 border-b border-gray-300 shadow-md"></div>
+                  <div className="bg-gray-500 text-white text-center py-3 text-sm font-semibold tracking-widest">
+                    Page Break
+                  </div>
+                  <div className="h-3 bg-gradient-to-b from-gray-300 via-gray-100 to-white border-t border-gray-300 shadow-md"></div>
+                </div>
+              )}
+              <EditableSection
+                section={section}
+                onDelete={() => handleDelete(section.id)}
+                onDuplicate={() => handleDuplicate(section.id)}
+              >
+                <div className="resume-section mb-6">
+                  <h3
+                    className="mb-3 border-b-2 border-pink-300 pb-2"
+                    style={{ 
+                      color: headerColor,
+                      fontSize: `${headerSize}px`,
+                      fontWeight: headerBold ? 'bold' : 'normal'
+                    }}
+                    contentEditable
+                    suppressContentEditableWarning={true}
+                    onBlur={(e) => handleSectionChange(section.id, 'title', e.currentTarget.textContent || '')}
+                  >
+                    {section.title}
+                  </h3>
+                  <div
+                    className="text-gray-700 leading-relaxed border-l-4 border-purple-300 pl-4"
+                    style={{ 
+                      color: bodyColor,
+                      fontSize: `${bodySize}px`,
+                      fontWeight: bodyBold ? 'bold' : 'normal'
+                    }}
+                    contentEditable
+                    suppressContentEditableWarning={true}
+                    onBlur={(e) => handleSectionChange(section.id, 'content', e.currentTarget.textContent || '')}
+                  >
+                    {section.content}
+                  </div>
+                </div>
+              </EditableSection>
+            </React.Fragment>
+          ))}
         </div>
       </div>
     </div>

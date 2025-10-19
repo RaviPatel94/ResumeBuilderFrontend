@@ -24,9 +24,10 @@ const templates = [
   },
 ];
 
-const userProjects = [
-  { id: "proj1", name: "My Portfolio", thumbnail: "/project1.png" },
-  { id: "proj2", name: "Software Engineer Resume", thumbnail: "/project2.png" },
+const userProjects :  {
+    id: string;
+    name: string;
+    thumbnail: string; }[] = [
 ];
 
 export default function TemplatesPage() {
@@ -70,7 +71,7 @@ export default function TemplatesPage() {
                 onClick={() => router.push(`/editor/${tpl.id}`)}
                 className="cursor-pointer rounded-xl shadow-sm hover:shadow-md border border-gray-200 transition p-4 flex flex-col items-center"
               >
-                <img src={tpl.thumbnail} alt={tpl.name} className="rounded-md mb-3 w-full h-40 object-cover" />
+                <img src={tpl.thumbnail} alt={tpl.name} className="rounded-md mb-3 w-full top-0 h-62 object-cover object-top" />
                 <h2 className="font-semibold text-black text-lg">{tpl.name}</h2>
               </div>
               <p className="text-sm text-gray-500 mt-2 text-center">{tpl.description}</p>

@@ -3,7 +3,7 @@ import React, { ReactNode } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { RootState, AppDispatch } from "@/store/store";
 import { deleteSection, duplicateSection, updateResume } from "@/store/resumeSlice";
-import { Section } from "@/types";
+import { Section, StyleProps } from "@/types";
 import { Trash2, Copy } from "lucide-react";
 
 function EditableSection({
@@ -47,7 +47,23 @@ function EditableSection({
   );
 }
 
-export default function ClassicTemplate() {
+export default function ClassicTemplate({
+  nameSize = 36,
+  nameColor = "#000000",
+  nameBold = true,
+  titleSize = 16,
+  titleColor = "#000000",
+  titleBold = false,
+  contactSize = 12,
+  contactColor = "#000000",
+  contactBold = false,
+  headerSize = 18,
+  headerColor = "#000000",
+  headerBold = true,
+  bodySize = 14,
+  bodyColor = "#000000",
+  bodyBold = false,
+}: StyleProps = {}) {
   const dispatch = useDispatch<AppDispatch>();
   const resume = useSelector((state: RootState) => state.resume.resume);
   const [pageBreaks, setPageBreaks] = React.useState<number[]>([]);
@@ -98,7 +114,7 @@ export default function ClassicTemplate() {
     const calculatePageBreaks = () => {
       if (!contentRef.current) return;
 
-      const PAGE_HEIGHT = 1056; // Standard letter size in pixels at 96 DPI
+      const PAGE_HEIGHT = 1056;
       const HEADER_HEIGHT = contentRef.current.querySelector('.resume-header')?.clientHeight || 0;
       const availableHeight = PAGE_HEIGHT - HEADER_HEIGHT;
       
@@ -142,7 +158,12 @@ export default function ClassicTemplate() {
     <div ref={contentRef} className="w-[816px] min-h-[1056px] relative mx-auto bg-white border-2 border-black overflow-hidden flex flex-col">
       <div className="resume-header text-center p-8 pb-6 border-b-4 border-black flex-shrink-0">
         <h1
-          className="text-4xl font-serif font-bold text-black mb-2 tracking-wide uppercase"
+          className="font-serif tracking-wide uppercase"
+          style={{ 
+            color: nameColor,
+            fontSize: `${nameSize}px`,
+            fontWeight: nameBold ? 'bold' : 'normal'
+          }}
           contentEditable
           suppressContentEditableWarning={true}
           onBlur={(e) => handleTextChange('name', e.currentTarget.textContent || '')}
@@ -150,7 +171,12 @@ export default function ClassicTemplate() {
           {resume.name}
         </h1>
         <h2
-          className="text-base font-serif text-black mb-3 tracking-widest uppercase"
+          className="font-serif tracking-widest uppercase mt-2"
+          style={{ 
+            color: titleColor,
+            fontSize: `${titleSize}px`,
+            fontWeight: titleBold ? 'bold' : 'normal'
+          }}
           contentEditable
           suppressContentEditableWarning={true}
           onBlur={(e) => handleTextChange('title', e.currentTarget.textContent || '')}
@@ -158,7 +184,14 @@ export default function ClassicTemplate() {
           {resume.title}
         </h2>
         {resume.contact && (
-          <div className="text-xs text-black font-mono">
+          <div 
+            className="font-mono mt-3"
+            style={{ 
+              color: contactColor,
+              fontSize: `${contactSize}px`,
+              fontWeight: contactBold ? 'bold' : 'normal'
+            }}
+          >
             <div className="mb-1">
               <span 
                 contentEditable 
@@ -203,15 +236,10 @@ export default function ClassicTemplate() {
           <React.Fragment key={section.id}>
             {pageBreaks.includes(index) && (
               <div className="my-8">
-                {/* Top page shadow/edge */}
                 <div className="h-3 bg-gradient-to-b from-white via-gray-100 to-gray-300 border-b border-gray-300 shadow-md"></div>
-                
-                {/* Page number indicator */}
                 <div className="bg-gray-500 text-white text-center py-3 text-sm font-semibold tracking-widest">
                   Page Break
                 </div>
-                
-                {/* Bottom page shadow/edge */}
                 <div className="h-3 bg-gradient-to-b from-gray-300 via-gray-100 to-white border-t border-gray-300 shadow-md"></div>
               </div>
             )}
@@ -222,7 +250,12 @@ export default function ClassicTemplate() {
             >
               <div className="resume-section mb-6">
                 <h3
-                  className="text-lg font-serif font-bold text-black uppercase tracking-wider mb-3 text-center"
+                  className="font-serif uppercase tracking-wider mb-3 text-center"
+                  style={{ 
+                    color: headerColor,
+                    fontSize: `${headerSize}px`,
+                    fontWeight: headerBold ? 'bold' : 'normal'
+                  }}
                   contentEditable
                   suppressContentEditableWarning={true}
                   onBlur={(e) => handleSectionChange(section.id, 'title', e.currentTarget.textContent || '')}
@@ -231,7 +264,12 @@ export default function ClassicTemplate() {
                 </h3>
                 <hr className="border-black mb-3" />
                 <div
-                  className="text-black text-sm leading-7 font-serif text-justify px-4"
+                  className="leading-7 font-serif text-justify px-4"
+                  style={{ 
+                    color: bodyColor,
+                    fontSize: `${bodySize}px`,
+                    fontWeight: bodyBold ? 'bold' : 'normal'
+                  }}
                   contentEditable
                   suppressContentEditableWarning={true}
                   onBlur={(e) => handleSectionChange(section.id, 'content', e.currentTarget.textContent || '')}
@@ -246,14 +284,26 @@ export default function ClassicTemplate() {
         {/* Skills Section */}
         {resume.skills && resume.skills.length > 0 && (
           <div>
-            <h3 className="text-lg font-serif font-bold text-black uppercase tracking-wider mb-3 text-center">
+            <h3 
+              className="font-serif uppercase tracking-wider mb-3 text-center"
+              style={{ 
+                color: headerColor,
+                fontSize: `${headerSize}px`,
+                fontWeight: headerBold ? 'bold' : 'normal'
+              }}
+            >
               SKILLS
             </h3>
-            <div className="flex text-black flex-wrap gap-2 justify-center">
+            <div className="flex flex-wrap gap-2 justify-center">
               {resume.skills.map((skill, idx) => (
                 <span
                   key={idx}
-                  className="bg-gray-200 px-3 py-1 rounded font-mono text-xs"
+                  className="bg-gray-200 px-3 py-1 rounded font-mono"
+                  style={{ 
+                    color: bodyColor,
+                    fontSize: `${bodySize}px`,
+                    fontWeight: bodyBold ? 'bold' : 'normal'
+                  }}
                   contentEditable
                   suppressContentEditableWarning={true}
                   onBlur={(e) => handleSkillChange(idx, e.currentTarget.textContent || '')}
