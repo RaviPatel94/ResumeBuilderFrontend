@@ -7,9 +7,9 @@ export default function Hero() {
   const router = useRouter();
 
   return (
-    <>
+    <div className="">
       <Navbar />
-      <div className="min-h-screen flex flex-col items-center justify-center bg-white text-black px-6">
+      <div className=" h-screen flex flex-col items-center justify-center bg-white text-black px-6">
         <h1 className="text-5xl font-bold mb-4">Build Your Resume Effortlessly</h1>
         <p className="text-gray-600 mb-6 text-center max-w-xl">
           Choose a template and start customizing instantly. Showcase your projects, experience, and education in style.
@@ -21,6 +21,6 @@ export default function Hero() {
           Get Started
         </button>
       </div>
-    </>
+    </div>
   );
 }

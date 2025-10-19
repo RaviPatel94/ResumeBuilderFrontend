@@ -2,6 +2,43 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 import { ResumeData, Section } from '@/types';
 
+// Define style types
+export interface StyleSettings {
+  nameSize: number;
+  nameColor: string;
+  nameBold: boolean;
+  titleSize: number;
+  titleColor: string;
+  titleBold: boolean;
+  contactSize: number;
+  contactColor: string;
+  contactBold: boolean;
+  headerSize: number;
+  headerColor: string;
+  headerBold: boolean;
+  bodySize: number;
+  bodyColor: string;
+  bodyBold: boolean;
+}
+
+const defaultStyles: StyleSettings = {
+  nameSize: 36,
+  nameColor: "#000000",
+  nameBold: true,
+  titleSize: 16,
+  titleColor: "#000000",
+  titleBold: false,
+  contactSize: 12,
+  contactColor: "#000000",
+  contactBold: false,
+  headerSize: 18,
+  headerColor: "#000000",
+  headerBold: true,
+  bodySize: 14,
+  bodyColor: "#000000",
+  bodyBold: false,
+};
+
 const defaultResume: ResumeData = {
   name: "Ravi Patel",
   title: "Frontend Developer",
@@ -42,10 +79,14 @@ const defaultResume: ResumeData = {
 
 interface ResumeState {
   resume: ResumeData;
+  currentTemplate: string;
+  styles: StyleSettings;
 }
 
 const initialState: ResumeState = {
-  resume: defaultResume
+  resume: defaultResume,
+  currentTemplate: "classic",
+  styles: defaultStyles,
 }
 
 const resumeSlice = createSlice({
@@ -75,7 +116,6 @@ const resumeSlice = createSlice({
     setSkills(state, action: PayloadAction<string[]>) {
       state.resume.skills = action.payload;
     },
-    // Optional: Add more granular update actions
     updateContact(state, action: PayloadAction<{ field: keyof ResumeData['contact']; value: string }>) {
       if (state.resume.contact) {
         (state.resume.contact as any)[action.payload.field] = action.payload.value;
@@ -87,6 +127,18 @@ const resumeSlice = createSlice({
         section[action.payload.field] = action.payload.value;
       }
     },
+    setTemplate(state, action: PayloadAction<string>) {
+      state.currentTemplate = action.payload;
+    },
+    updateStyles(state, action: PayloadAction<Partial<StyleSettings>>) {
+      state.styles = { ...state.styles, ...action.payload };
+    },
+    updateSingleStyle(state, action: PayloadAction<{ key: keyof StyleSettings; value: string | number | boolean }>) {
+      (state.styles as any)[action.payload.key] = action.payload.value;
+    },
+    resetStyles(state) {
+      state.styles = defaultStyles;
+    },
   },
 });
 
@@ -96,6 +148,11 @@ export const {
   duplicateSection, 
   setSkills,
   updateContact,
-  updateSection 
+  updateSection,
+  setTemplate,
+  updateStyles,
+  updateSingleStyle,
+  resetStyles,
 } = resumeSlice.actions;
+
 export default resumeSlice.reducer;
