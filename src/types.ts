@@ -1,11 +1,8 @@
-// types/resume.ts
-
 export interface Section {
   id: string;
   title: string;
   content: string | React.ReactNode;
 }
-
 
 export interface ContactInfo {
   email?: string;
@@ -13,8 +10,6 @@ export interface ContactInfo {
   location?: string;
   linkedin?: string;
 }
-
-
 
 export interface ResumeData {
   name: string;

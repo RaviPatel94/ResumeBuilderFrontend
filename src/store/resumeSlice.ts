@@ -1,27 +1,9 @@
 // store/resumeSlice.ts
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
-import { ResumeData, Section } from '@/types';
+import { ResumeData, Section, StyleProps } from '@/types';
 
-// Define style types
-export interface StyleSettings {
-  nameSize: number;
-  nameColor: string;
-  nameBold: boolean;
-  titleSize: number;
-  titleColor: string;
-  titleBold: boolean;
-  contactSize: number;
-  contactColor: string;
-  contactBold: boolean;
-  headerSize: number;
-  headerColor: string;
-  headerBold: boolean;
-  bodySize: number;
-  bodyColor: string;
-  bodyBold: boolean;
-}
 
-const defaultStyles: StyleSettings = {
+const defaultStyles: StyleProps = {
   nameSize: 36,
   nameColor: "#000000",
   nameBold: true,
@@ -80,7 +62,7 @@ const defaultResume: ResumeData = {
 interface ResumeState {
   resume: ResumeData;
   currentTemplate: string;
-  styles: StyleSettings;
+  styles: StyleProps;
 }
 
 const initialState: ResumeState = {
@@ -130,14 +112,30 @@ const resumeSlice = createSlice({
     setTemplate(state, action: PayloadAction<string>) {
       state.currentTemplate = action.payload;
     },
-    updateStyles(state, action: PayloadAction<Partial<StyleSettings>>) {
+    updateStyles(state, action: PayloadAction<Partial<StyleProps>>) {
       state.styles = { ...state.styles, ...action.payload };
     },
-    updateSingleStyle(state, action: PayloadAction<{ key: keyof StyleSettings; value: string | number | boolean }>) {
+    updateSingleStyle(state, action: PayloadAction<{ key: keyof StyleProps; value: string | number | boolean }>) {
       (state.styles as any)[action.payload.key] = action.payload.value;
     },
     resetStyles(state) {
       state.styles = defaultStyles;
+    },
+    moveSectionUp(state, action: PayloadAction<string>) {
+      const index = state.resume.sections.findIndex(s => s.id === action.payload);
+      if (index > 0) {
+        const temp = state.resume.sections[index];
+        state.resume.sections[index] = state.resume.sections[index - 1];
+        state.resume.sections[index - 1] = temp;
+      }
+    },
+    moveSectionDown(state, action: PayloadAction<string>) {
+      const index = state.resume.sections.findIndex(s => s.id === action.payload);
+      if (index < state.resume.sections.length - 1) {
+        const temp = state.resume.sections[index];
+        state.resume.sections[index] = state.resume.sections[index + 1];
+        state.resume.sections[index + 1] = temp;
+      }
     },
   },
 });
@@ -153,6 +151,8 @@ export const {
   updateStyles,
   updateSingleStyle,
   resetStyles,
+  moveSectionUp,
+  moveSectionDown,
 } = resumeSlice.actions;
 
 export default resumeSlice.reducer;

@@ -9,6 +9,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { updateResume, setTemplate, updateSingleStyle } from "@/store/resumeSlice";
 import { RootState } from "@/store/store";
 import { ChevronDown, ChevronRight, Type, Palette, Save, Download } from "lucide-react";
+import { StyleProps } from "@/types";
 
 export default function EditorPage() {
   const params = useParams();
@@ -57,8 +58,6 @@ export default function EditorPage() {
   };
 
   const handleSaveDraft = () => {
-    // Redux persist will automatically save this
-    // You can also add custom logic here if needed
     console.log("Draft saved automatically via Redux Persist");
   };
 
@@ -84,9 +83,9 @@ export default function EditorPage() {
   const renderStyleControl = (
     label: string,
     section: string,
-    sizeKey: string,
-    colorKey: string,
-    boldKey: string,
+    sizeKey: keyof StyleProps,
+    colorKey: keyof StyleProps,
+    boldKey: keyof StyleProps,
     minSize: number,
     maxSize: number
   ) => {
@@ -120,7 +119,7 @@ export default function EditorPage() {
               <input
                 type="number"
                 value={size}
-                onChange={(e) => dispatch(updateSingleStyle({ key: sizeKey as any, value: Number(e.target.value) }))}
+                onChange={(e) => dispatch(updateSingleStyle({ key: sizeKey , value: Number(e.target.value) }))}
                 className="w-16 px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-[#10B981]"
                 min={minSize}
                 max={maxSize}
@@ -128,7 +127,7 @@ export default function EditorPage() {
               <input
                 type="range"
                 value={size}
-                onChange={(e) => dispatch(updateSingleStyle({ key: sizeKey as any, value: Number(e.target.value) }))}
+                onChange={(e) => dispatch(updateSingleStyle({ key: sizeKey , value: Number(e.target.value) }))}
                 className="flex-1"
                 min={minSize}
                 max={maxSize}
@@ -139,13 +138,13 @@ export default function EditorPage() {
               <input
                 type="color"
                 value={color}
-                onChange={(e) => dispatch(updateSingleStyle({ key: colorKey as any, value: e.target.value }))}
+                onChange={(e) => dispatch(updateSingleStyle({ key: colorKey , value: e.target.value }))}
                 className="w-10 h-8 border border-gray-300 rounded cursor-pointer"
               />
               <input
                 type="text"
                 value={color}
-                onChange={(e) => dispatch(updateSingleStyle({ key: colorKey as any, value: e.target.value }))}
+                onChange={(e) => dispatch(updateSingleStyle({ key: colorKey , value: e.target.value }))}
                 className="flex-1 px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-[#10B981]"
               />
             </div>
@@ -154,7 +153,7 @@ export default function EditorPage() {
                 type="checkbox"
                 id={`${section}Bold`}
                 checked={bold}
-                onChange={(e) => dispatch(updateSingleStyle({ key: boldKey as any, value: e.target.checked }))}
+                onChange={(e) => dispatch(updateSingleStyle({ key: boldKey , value: e.target.checked }))}
                 className="w-4 h-4 text-[#10B981] border-gray-300 rounded focus:ring-[#10B981]"
               />
               <label htmlFor={`${section}Bold`} className="text-sm text-gray-600">Bold</label>

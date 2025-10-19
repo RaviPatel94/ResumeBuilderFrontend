@@ -1,51 +1,10 @@
 "use client";
-import React, { ReactNode } from "react";
+import React from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { RootState, AppDispatch } from "@/store/store";
-import { deleteSection, duplicateSection, updateResume } from "@/store/resumeSlice";
+import { deleteSection, duplicateSection, updateResume, moveSectionUp, moveSectionDown } from "@/store/resumeSlice";
 import { Section, StyleProps } from "@/types";
-import { Trash2, Copy } from "lucide-react";
-
-function EditableSection({
-  section,
-  onDelete,
-  onDuplicate,
-  children,
-}: {
-  section: Section;
-  onDelete: () => void;
-  onDuplicate: () => void;
-  children: ReactNode;
-}) {
-  const [isHovered, setIsHovered] = React.useState(false);
-  return (
-    <div
-      className="relative"
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-    >
-      {isHovered && (
-        <div className="absolute left-0.5 right-0.5 -top-8 flex flex-row items-center justify-center gap-2 z-10">
-          <button
-            onClick={onDuplicate}
-            className="p-2 h-8 w-8 cursor-pointer bg-blue-500 text-white rounded hover:bg-blue-600 shadow-lg"
-            title="Duplicate section"
-          >
-            <Copy size={16} />
-          </button>
-          <button
-            onClick={onDelete}
-            className="p-2 h-8 w-8 cursor-pointer bg-red-500 text-white rounded hover:bg-red-600 shadow-lg"
-            title="Delete section"
-          >
-            <Trash2 size={16} />
-          </button>
-        </div>
-      )}
-      {children}
-    </div>
-  );
-}
+import EditableSection from "@/components/EditableSection";
 
 export default function ModernTemplate({
   nameSize = 36,
@@ -71,6 +30,8 @@ export default function ModernTemplate({
 
   const handleDelete = (id: string) => dispatch(deleteSection(id));
   const handleDuplicate = (id: string) => dispatch(duplicateSection(id));
+  const handleMoveUp = (id: string) => dispatch(moveSectionUp(id));
+  const handleMoveDown = (id: string) => dispatch(moveSectionDown(id));
 
   // Text change handlers
   const handleTextChange = (type: 'name' | 'title', value: string) => {
@@ -281,9 +242,13 @@ export default function ModernTemplate({
                 </div>
               )}
               <EditableSection
-                section={section}
+              id={section.id}
                 onDelete={() => handleDelete(section.id)}
                 onDuplicate={() => handleDuplicate(section.id)}
+                onMoveUp={() => handleMoveUp(section.id)}
+                onMoveDown={() => handleMoveDown(section.id)}
+                isFirst={index === 0}
+                isLast={index === resume.sections.length - 1}
               >
                 <div className="resume-section mb-6">
                   <h3
