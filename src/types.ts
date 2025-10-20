@@ -60,3 +60,20 @@ export interface StyleProps {
   bodyColor?: string;
   bodyBold?: boolean;
 }
+
+export interface Project {
+  id: string;
+  name: string;
+  template: string;
+  resume: ResumeData;
+  styles: StyleProps;
+  createdAt: number;
+  updatedAt: number;
+  thumbnail?: string;
+}
+
+export interface ProjectsState {
+  projects: Record<string, Project>;
+  currentProjectId: string | null;
+  projectOrder: string[]; 
+}

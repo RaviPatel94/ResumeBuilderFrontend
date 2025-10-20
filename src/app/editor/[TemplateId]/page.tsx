@@ -8,32 +8,31 @@ import CreativeTemplate from "@/components/Templates/CreativeTemplate";
 import { useDispatch, useSelector } from "react-redux";
 import {
   setTemplate,
-  updateSingleStyle,
-  updateResumeTitle, 
+  updateResumeTitle,
+  resetStyles,
 } from "@/store/resumeSlice";
 import { RootState } from "@/store/store";
-import {
-  ChevronDown,
-  ChevronRight,
-  Type,
-  Palette,
-  Save,
-  Download,
-  Edit2,
-} from "lucide-react";
-import { StyleProps } from "@/types";
+import { ChevronDown, Edit2, Save, Download } from "lucide-react";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
+import RenderStyleControl from "@/components/renderStyleControl";
+import { StyleProps } from "@/types";
 
 export default function EditorPage() {
   const params = useParams();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(["name"]));
+  const [expandedSections, setExpandedSections] = useState<Set<string>>(
+    new Set(["name"])
+  );
 
   const dispatch = useDispatch();
   const resumeRef = useRef<HTMLDivElement>(null);
-  const currentTemplate = useSelector((state: RootState) => state.resume.data.template);
-  const resumeTitle = useSelector((state: RootState) => state.resume.data.title);
+  const currentTemplate = useSelector(
+    (state: RootState) => state.resume.data.template
+  );
+  const resumeTitle = useSelector(
+    (state: RootState) => state.resume.data.title
+  );
   const styles = useSelector((state: RootState) => state.resume.styles);
 
   useEffect(() => {
@@ -65,7 +64,11 @@ export default function EditorPage() {
 
     const canvas = await html2canvas(element, { scale: 2, useCORS: true });
     const imgData = canvas.toDataURL("image/png");
-    const pdf = new jsPDF({ orientation: "portrait", unit: "px", format: "a4" });
+    const pdf = new jsPDF({
+      orientation: "portrait",
+      unit: "px",
+      format: "a4",
+    });
 
     const pageWidth = pdf.internal.pageSize.getWidth();
     const pageHeight = pdf.internal.pageSize.getHeight();
@@ -83,9 +86,17 @@ export default function EditorPage() {
   };
 
   const templates = [
-    { id: "classic", name: "Classic Professional", description: "Traditional black & white formal layout" },
+    {
+      id: "classic",
+      name: "Classic Professional",
+      description: "Traditional black & white formal layout",
+    },
     { id: "modern", name: "Modern Minimalist", description: "Clean layout" },
-    { id: "creative", name: "Creative Two-Column", description: "Colorful layout" },
+    {
+      id: "creative",
+      name: "Creative Two-Column",
+      description: "Colorful layout",
+    },
   ];
 
   const currentTemplateInfo = templates.find((t) => t.id === currentTemplate);
@@ -97,102 +108,6 @@ export default function EditorPage() {
       else newSet.add(section);
       return newSet;
     });
-  };
-
-  const renderStyleControl = (
-    label: string,
-    section: string,
-    sizeKey: keyof StyleProps,
-    colorKey: keyof StyleProps,
-    boldKey: keyof StyleProps,
-    minSize: number,
-    maxSize: number
-  ) => {
-    const size = styles[sizeKey] as number;
-    const color = styles[colorKey] as string;
-    const bold = styles[boldKey] as boolean;
-
-    return (
-      <div className="border-b border-gray-100 last:border-b-0">
-        <button
-          onClick={() => toggleSection(section)}
-          className="w-full px-4 py-3 flex items-center justify-between hover:bg-gray-50 transition"
-        >
-          <div className="flex items-center gap-2">
-            {expandedSections.has(section) ? (
-              <ChevronDown className="w-4 h-4 text-gray-400" />
-            ) : (
-              <ChevronRight className="w-4 h-4 text-gray-400" />
-            )}
-            <span className="text-sm font-medium text-gray-700">{label}</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-4 h-4 rounded border border-gray-300" style={{ backgroundColor: color }} />
-            <span className="text-xs text-gray-500">{size}px</span>
-          </div>
-        </button>
-        {expandedSections.has(section) && (
-          <div className="px-4 pb-4 space-y-3 bg-gray-50">
-            <div className="flex items-center gap-3">
-              <Type className="w-4 h-4 text-gray-400" />
-              <input
-                type="number"
-                value={size}
-                onChange={(e) =>
-                  dispatch(updateSingleStyle({ key: sizeKey, value: Number(e.target.value) }))
-                }
-                className="w-16 px-2 py-1 text-sm border border-gray-300 rounded focus:ring-[#10B981]"
-                min={minSize}
-                max={maxSize}
-              />
-              <input
-                type="range"
-                value={size}
-                onChange={(e) =>
-                  dispatch(updateSingleStyle({ key: sizeKey, value: Number(e.target.value) }))
-                }
-                className="flex-1"
-                min={minSize}
-                max={maxSize}
-              />
-            </div>
-            <div className="flex items-center gap-3">
-              <Palette className="w-4 h-4 text-gray-400" />
-              <input
-                type="color"
-                value={color}
-                onChange={(e) =>
-                  dispatch(updateSingleStyle({ key: colorKey, value: e.target.value }))
-                }
-                className="w-10 h-8 border border-gray-300 rounded cursor-pointer"
-              />
-              <input
-                type="text"
-                value={color}
-                onChange={(e) =>
-                  dispatch(updateSingleStyle({ key: colorKey, value: e.target.value }))
-                }
-                className="flex-1 px-2 py-1 text-sm border border-gray-300 rounded focus:ring-[#10B981]"
-              />
-            </div>
-            <div className="flex items-center gap-2">
-              <input
-                type="checkbox"
-                id={`${section}Bold`}
-                checked={bold}
-                onChange={(e) =>
-                  dispatch(updateSingleStyle({ key: boldKey, value: e.target.checked }))
-                }
-                className="w-4 h-4 cursor-pointer border-gray-300 rounded focus:ring-[#10B981]"
-              />
-              <label htmlFor={`${section}Bold`} className="text-sm text-gray-600">
-                Bold
-              </label>
-            </div>
-          </div>
-        )}
-      </div>
-    );
   };
 
   return (
@@ -219,18 +134,26 @@ export default function EditorPage() {
 
               {/* Template Selector */}
               <div>
-                <h2 className="text-sm font-semibold text-gray-900 mb-2 px-2">Template</h2>
+                <h2 className="text-sm font-semibold text-gray-900 mb-2 px-2">
+                  Template
+                </h2>
                 <div className="relative">
                   <button
                     onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                     className="flex items-center justify-between w-full px-3 py-2 bg-white border border-gray-300 rounded-lg shadow-sm hover:bg-gray-50 focus:ring-2 focus:ring-[#10B981]"
                   >
                     <div className="flex flex-col items-start">
-                      <span className="text-sm font-medium text-gray-900">{currentTemplateInfo?.name}</span>
-                      <span className="text-xs text-gray-500">{currentTemplateInfo?.description}</span>
+                      <span className="text-sm font-medium text-gray-900">
+                        {currentTemplateInfo?.name}
+                      </span>
+                      <span className="text-xs text-gray-500">
+                        {currentTemplateInfo?.description}
+                      </span>
                     </div>
                     <ChevronDown
-                      className={`w-4 h-4 text-gray-400 transition-transform ${isDropdownOpen ? "rotate-180" : ""}`}
+                      className={`w-4 h-4 text-gray-400 transition-transform ${
+                        isDropdownOpen ? "rotate-180" : ""
+                      }`}
                     />
                   </button>
                   {isDropdownOpen && (
@@ -243,12 +166,18 @@ export default function EditorPage() {
                             setIsDropdownOpen(false);
                           }}
                           className={`w-full px-3 py-2 text-left hover:bg-gray-50 ${
-                            currentTemplate === template.id ? "bg-[#10B981]/10 border-r-2 border-[#10B981]" : ""
+                            currentTemplate === template.id
+                              ? "bg-[#10B981]/10 border-r-2 border-[#10B981]"
+                              : ""
                           }`}
                         >
                           <div className="flex flex-col">
-                            <span className="text-sm font-medium text-gray-900">{template.name}</span>
-                            <span className="text-xs text-gray-500">{template.description}</span>
+                            <span className="text-sm font-medium text-gray-900">
+                              {template.name}
+                            </span>
+                            <span className="text-xs text-gray-500">
+                              {template.description}
+                            </span>
                           </div>
                         </button>
                       ))}
@@ -259,18 +188,75 @@ export default function EditorPage() {
 
               {/* Font Settings */}
               <div>
-                <h2 className="text-sm font-semibold text-gray-900 mb-2 px-2">Font Settings</h2>
+                <h2 className="text-sm font-semibold text-gray-900 mb-2 px-2">
+                  Font Settings
+                </h2>
                 <div className="border border-gray-200 rounded-lg overflow-hidden">
-                  {renderStyleControl("Name", "name", "nameSize", "nameColor", "nameBold", 20, 48)}
-                  {renderStyleControl("Job Title", "title", "titleSize", "titleColor", "titleBold", 12, 24)}
-                  {renderStyleControl("Contact Info", "contact", "contactSize", "contactColor", "contactBold", 10, 18)}
-                  {renderStyleControl("Section Headers", "header", "headerSize", "headerColor", "headerBold", 14, 24)}
-                  {renderStyleControl("Body Text", "body", "bodySize", "bodyColor", "bodyBold", 10, 18)}
+                  <RenderStyleControl
+                    label="Name"
+                    section="name"
+                    sizeKey="nameSize"
+                    colorKey="nameColor"
+                    boldKey="nameBold"
+                    minSize={20}
+                    maxSize={48}
+                    expandedSections={expandedSections}
+                    toggleSection={toggleSection}
+                  />
+                  <RenderStyleControl
+                    label="Job Title"
+                    section="title"
+                    sizeKey="titleSize"
+                    colorKey="titleColor"
+                    boldKey="titleBold"
+                    minSize={12}
+                    maxSize={24}
+                    expandedSections={expandedSections}
+                    toggleSection={toggleSection}
+                  />
+                  <RenderStyleControl
+                    label="Contact Info"
+                    section="contact"
+                    sizeKey="contactSize"
+                    colorKey="contactColor"
+                    boldKey="contactBold"
+                    minSize={10}
+                    maxSize={18}
+                    expandedSections={expandedSections}
+                    toggleSection={toggleSection}
+                  />
+                  <RenderStyleControl
+                    label="Section Headers"
+                    section="header"
+                    sizeKey="headerSize"
+                    colorKey="headerColor"
+                    boldKey="headerBold"
+                    minSize={14}
+                    maxSize={24}
+                    expandedSections={expandedSections}
+                    toggleSection={toggleSection}
+                  />
+                  <RenderStyleControl
+                    label="Body Text"
+                    section="body"
+                    sizeKey="bodySize"
+                    colorKey="bodyColor"
+                    boldKey="bodyBold"
+                    minSize={10}
+                    maxSize={18}
+                    expandedSections={expandedSections}
+                    toggleSection={toggleSection}
+                  />
                 </div>
               </div>
 
-              {/* Buttons */}
               <div className="space-y-2 pt-2">
+                <button
+                  className="w-full px-4 py-2 cursor-pointer bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 flex items-center justify-center gap-2 text-sm"
+                  onClick={() => dispatch(resetStyles())}
+                >
+                  Reset Style
+                </button>
                 <button
                   className="w-full px-4 py-2 cursor-pointer bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 flex items-center justify-center gap-2 text-sm"
                   onClick={handleSaveDraft}
@@ -280,7 +266,7 @@ export default function EditorPage() {
                 </button>
                 <button
                   onClick={handleDownloadPDF}
-                  className="w-full px-4 py-2 bg-[#10B981] text-white rounded-lg hover:bg-[#0F9A6B] flex items-center justify-center gap-2 text-sm"
+                  className="w-full px-4 py-2 cursor-pointer bg-[#10B981] text-white rounded-lg hover:bg-[#0F9A6B] flex items-center justify-center gap-2 text-sm"
                 >
                   <Download className="w-4 h-4" />
                   Download PDF
@@ -288,10 +274,12 @@ export default function EditorPage() {
               </div>
             </div>
           </div>
-
-          {/* Right Panel - Resume Preview */}
+          
           <div className="flex-1 overflow-y-auto bg-gray-100 p-8">
-            <div className="max-w-4xl mx-auto bg-white p-6 rounded-lg shadow" ref={resumeRef}>
+            <div
+              className="max-w-4xl mx-auto bg-white p-6 rounded-lg shadow"
+              ref={resumeRef}
+            >
               {renderTemplate()}
             </div>
           </div>
