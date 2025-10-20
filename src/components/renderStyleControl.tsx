@@ -2,7 +2,7 @@
 import { ChevronDown, ChevronRight, Type } from "lucide-react";
 import { StyleProps } from "@/types";
 import { useDispatch, useSelector } from "react-redux";
-import { updateSingleStyle } from "@/store/resumeSlice";
+import { updateSingleStyle } from "@/store/projectSlice";
 import { RootState } from "@/store/store";
 import React from "react";
 
@@ -30,10 +30,26 @@ const RenderStyleControl: React.FC<RenderStyleControlProps> = ({
   toggleSection,
 }) => {
   const dispatch = useDispatch();
-  const styles = useSelector((state: RootState) => state.resume.styles);
+  
+  const currentProjectId = useSelector((state: RootState) => state.projects.currentProjectId);
+  const currentProject = useSelector((state: RootState) => 
+    currentProjectId ? state.projects.projects[currentProjectId] : null
+  );
+
+  if (!currentProject) return null;
+
+  const styles = currentProject.styles;
   const size = styles[sizeKey] as number;
   const color = styles[colorKey] as string;
   const bold = styles[boldKey] as boolean;
+
+  const handleStyleChange = (key: keyof StyleProps, value: string | number | boolean) => {
+    dispatch(updateSingleStyle({ 
+      projectId: currentProject.id, 
+      key, 
+      value 
+    }));
+  };
 
   return (
     <div className="border-b border-gray-100 last:border-b-0">
@@ -61,9 +77,7 @@ const RenderStyleControl: React.FC<RenderStyleControlProps> = ({
             <input
               type="number"
               value={size}
-              onChange={(e) =>
-                dispatch(updateSingleStyle({ key: sizeKey, value: Number(e.target.value) }))
-              }
+              onChange={(e) => handleStyleChange(sizeKey, Number(e.target.value))}
               className="w-16 px-2 py-1 text-sm border border-gray-300 rounded focus:ring-[#10B981]"
               min={minSize}
               max={maxSize}
@@ -71,9 +85,7 @@ const RenderStyleControl: React.FC<RenderStyleControlProps> = ({
             <input
               type="range"
               value={size}
-              onChange={(e) =>
-                dispatch(updateSingleStyle({ key: sizeKey, value: Number(e.target.value) }))
-              }
+              onChange={(e) => handleStyleChange(sizeKey, Number(e.target.value))}
               className="flex-1"
               min={minSize}
               max={maxSize}
@@ -83,17 +95,13 @@ const RenderStyleControl: React.FC<RenderStyleControlProps> = ({
             <input
               type="color"
               value={color}
-              onChange={(e) =>
-                dispatch(updateSingleStyle({ key: colorKey, value: e.target.value }))
-              }
+              onChange={(e) => handleStyleChange(colorKey, e.target.value)}
               className="w-10 h-8 border border-gray-300 rounded cursor-pointer"
             />
             <input
               type="text"
               value={color}
-              onChange={(e) =>
-                dispatch(updateSingleStyle({ key: colorKey, value: e.target.value }))
-              }
+              onChange={(e) => handleStyleChange(colorKey, e.target.value)}
               className="px-2 w-20 py-1 text-sm border border-gray-300 rounded focus:ring-[#10B981]"
             />
             <div className="flex items-center gap-0.5">
@@ -101,9 +109,7 @@ const RenderStyleControl: React.FC<RenderStyleControlProps> = ({
                 type="checkbox"
                 id={`${section}Bold`}
                 checked={bold}
-                onChange={(e) =>
-                  dispatch(updateSingleStyle({ key: boldKey, value: e.target.checked }))
-                }
+                onChange={(e) => handleStyleChange(boldKey, e.target.checked)}
                 className="w-4 h-4 cursor-pointer border-gray-300 rounded focus:ring-[#10B981]"
               />
               <label htmlFor={`${section}Bold`} className="text-sm font-bold text-gray-600">

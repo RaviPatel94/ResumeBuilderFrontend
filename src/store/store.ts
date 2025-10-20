@@ -1,18 +1,22 @@
 'use client';
 import { configureStore } from '@reduxjs/toolkit';
-import resumeReducer from './resumeSlice';
+import projectsReducer from './projectSlice';
 import { persistStore, persistReducer } from 'redux-persist';
 import storage from 'redux-persist/lib/storage';
 
-const persistConfig = { key: 'resume', storage };
+const persistConfig = { 
+  key: 'resumeBuilder', 
+  storage,
+  whitelist: ['projects']
+};
 
-const persistedReducer = persistReducer(persistConfig, resumeReducer);
+const persistedReducer = persistReducer(persistConfig, projectsReducer);
 
 export const store = configureStore({
-  reducer: { resume: persistedReducer },
+  reducer: { projects: persistedReducer },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
-      serializableCheck: false, // Needed for redux-persist
+      serializableCheck: false,
     }),
 });
 

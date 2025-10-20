@@ -1,7 +1,10 @@
-// app/templates/page.tsx
 "use client";
 import { useRouter } from "next/navigation";
+import { useSelector, useDispatch } from "react-redux";
+import { RootState } from "@/store/store";
+import { setCurrentProject, deleteProject } from "@/store/projectSlice";
 import Navbar from "@/components/Navbar";
+import { Trash2 } from "lucide-react";
 
 const templates = [
   { 
@@ -24,14 +27,29 @@ const templates = [
   },
 ];
 
-const userProjects :  {
-    id: string;
-    name: string;
-    thumbnail: string; }[] = [
-];
-
 export default function TemplatesPage() {
   const router = useRouter();
+  const dispatch = useDispatch();
+  
+  const projects = useSelector((state: RootState) => state.projects.projects);
+  const projectOrder = useSelector((state: RootState) => state.projects.projectOrder);
+
+  const userProjects = projectOrder.map(id => projects[id]).filter(Boolean);
+
+  const handleProjectClick = (projectId: string) => {
+    const project = projects[projectId];
+    if (project) {
+      dispatch(setCurrentProject(projectId));
+      router.push(`/editor/${project.template}`);
+    }
+  };
+
+  const handleDeleteProject = (e: React.MouseEvent, projectId: string) => {
+    e.stopPropagation();
+    if (confirm("Are you sure you want to delete this project?")) {
+      dispatch(deleteProject(projectId));
+    }
+  };
 
   return (
     <>
@@ -51,11 +69,30 @@ export default function TemplatesPage() {
               {userProjects.map((proj) => (
                 <div
                   key={proj.id}
-                  onClick={() => router.push(`/editor/project/${proj.id}`)}
-                  className="cursor-pointer rounded-xl shadow-sm hover:shadow-md border border-gray-200 transition p-4 flex flex-col items-center"
+                  onClick={() => handleProjectClick(proj.id)}
+                  className="cursor-pointer rounded-xl shadow-sm hover:shadow-md border border-gray-200 transition p-4 flex flex-col items-center relative group"
                 >
-                  <img src={proj.thumbnail} alt={proj.name} className="rounded-md mb-3 w-full h-40 object-cover" />
+                  <div className="w-full h-40 bg-gradient-to-br from-gray-100 to-gray-200 rounded-md mb-3 flex items-center justify-center text-gray-400">
+                    {proj.thumbnail ? (
+                      <img src={proj.thumbnail} alt={proj.name} className="w-full h-full object-cover rounded-md" />
+                    ) : (
+                      <span className="text-sm">Resume Preview</span>
+                    )}
+                  </div>
                   <h2 className="font-semibold text-black text-lg">{proj.name}</h2>
+                  <p className="text-xs text-gray-500 mt-1">
+                    {templates.find(t => t.id === proj.template)?.name || proj.template}
+                  </p>
+                  <p className="text-xs text-gray-400 mt-1">
+                    Updated {new Date(proj.updatedAt).toLocaleDateString()}
+                  </p>
+                  
+                  <button
+                    onClick={(e) => handleDeleteProject(e, proj.id)}
+                    className="absolute top-2 right-2 p-2 bg-red-500 text-white rounded-lg opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
                 </div>
               ))}
             </div>

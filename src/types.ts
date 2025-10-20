@@ -14,33 +14,8 @@ export interface ContactInfo {
 export interface ResumeData {
   name: string;
   title: string;
-  contact?: {
-    email?: string;
-    phone?: string;
-    location?: string;
-    linkedin?: string;
-  };
+  contact?: ContactInfo;
   sections: Section[];
-}
-
-export interface Contact {
-  email: string;
-  phone: string;
-  location: string;
-  linkedin: string;
-}
-
-export interface Resume {
-  name: string;
-  title: string;
-  contact: Contact;
-  sections: Section[];
-  skills?: string[];
-}
-
-export interface metadata{
-  title : string;
-  template: string;
 }
 
 export interface StyleProps {
@@ -75,5 +50,5 @@ export interface Project {
 export interface ProjectsState {
   projects: Record<string, Project>;
   currentProjectId: string | null;
-  projectOrder: string[]; 
+  projectOrder: string[];
 }

@@ -2,8 +2,14 @@
 import React from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { RootState, AppDispatch } from "@/store/store";
-import { deleteSection, duplicateSection, updateResume, moveSectionUp, moveSectionDown } from "@/store/resumeSlice";
-import { StyleProps } from "@/types";
+import { 
+  deleteSection, 
+  duplicateSection, 
+  updateProjectResume, 
+  moveSectionUp, 
+  moveSectionDown 
+} from "@/store/projectSlice";
+import { StyleProps, Section } from "@/types";
 import EditableSection from "@/components/EditableSection";
 
 export default function CreativeTemplate({
@@ -24,41 +30,77 @@ export default function CreativeTemplate({
   bodyBold = false,
 }: StyleProps = {}) {
   const dispatch = useDispatch<AppDispatch>();
-  const resume = useSelector((state: RootState) => state.resume.resume);
+  
+  const currentProjectId = useSelector((state: RootState) => state.projects.currentProjectId);
+  const currentProject = useSelector((state: RootState) => 
+    currentProjectId ? state.projects.projects[currentProjectId] : null
+  );
+  
   const [pageBreaks, setPageBreaks] = React.useState<number[]>([]);
   const contentRef = React.useRef<HTMLDivElement>(null);
 
-  const handleDelete = (id: string) => dispatch(deleteSection(id));
-  const handleDuplicate = (id: string) => dispatch(duplicateSection(id));
-  const handleMoveUp = (id: string) => dispatch(moveSectionUp(id));
-  const handleMoveDown = (id: string) => dispatch(moveSectionDown(id));
+  if (!currentProject) return null;
+
+  const resume = currentProject.resume;
+
+  const handleDelete = (id: string) => {
+    if (!currentProjectId) return;
+    dispatch(deleteSection({ projectId: currentProjectId, sectionId: id }));
+  };
+
+  const handleDuplicate = (id: string) => {
+    if (!currentProjectId) return;
+    dispatch(duplicateSection({ projectId: currentProjectId, sectionId: id }));
+  };
+
+  const handleMoveUp = (id: string) => {
+    if (!currentProjectId) return;
+    dispatch(moveSectionUp({ projectId: currentProjectId, sectionId: id }));
+  };
+
+  const handleMoveDown = (id: string) => {
+    if (!currentProjectId) return;
+    dispatch(moveSectionDown({ projectId: currentProjectId, sectionId: id }));
+  };
 
   // Text change handlers
   const handleTextChange = (type: 'name' | 'title', value: string) => {
-    dispatch(updateResume({
-      ...resume,
-      [type]: value
+    if (!currentProjectId) return;
+    dispatch(updateProjectResume({
+      projectId: currentProjectId,
+      resume: {
+        ...resume,
+        [type]: value
+      }
     }));
   };
 
   const handleContactChange = (field: 'email' | 'phone' | 'location' | 'linkedin', value: string) => {
-    dispatch(updateResume({
-      ...resume,
-      contact: {
-        ...resume.contact,
-        [field]: value
+    if (!currentProjectId) return;
+    dispatch(updateProjectResume({
+      projectId: currentProjectId,
+      resume: {
+        ...resume,
+        contact: {
+          ...resume.contact,
+          [field]: value
+        }
       }
     }));
   };
 
   const handleSectionChange = (sectionId: string, field: 'title' | 'content', value: string) => {
-    dispatch(updateResume({
-      ...resume,
-      sections: resume.sections.map(section =>
-        section.id === sectionId
-          ? { ...section, [field]: value }
-          : section
-      )
+    if (!currentProjectId) return;
+    dispatch(updateProjectResume({
+      projectId: currentProjectId,
+      resume: {
+        ...resume,
+        sections: resume.sections.map((section: Section) =>
+          section.id === sectionId
+            ? { ...section, [field]: value }
+            : section
+        )
+      }
     }));
   };
 
@@ -212,7 +254,7 @@ export default function CreativeTemplate({
 
 
         {/* Main Sections */}
-        {resume.sections.map((section, index) => (
+        {resume.sections.map((section: Section, index: number) => (
           <React.Fragment key={section.id}>
             {pageBreaks.includes(index) && (
               <div className="my-8">

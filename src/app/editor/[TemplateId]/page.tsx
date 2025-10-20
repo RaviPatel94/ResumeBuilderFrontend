@@ -1,5 +1,5 @@
 "use client";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState, useRef } from "react";
 import Navbar from "@/components/Navbar";
 import ClassicTemplate from "@/components/Templates/ClassicTemplate";
@@ -7,10 +7,12 @@ import ModernTemplate from "@/components/Templates/ModernTemplate";
 import CreativeTemplate from "@/components/Templates/CreativeTemplate";
 import { useDispatch, useSelector } from "react-redux";
 import {
-  setTemplate,
-  updateResumeTitle,
+  createProject,
+  setCurrentProject,
+  updateProjectName,
+  updateProjectTemplate,
   resetStyles,
-} from "@/store/resumeSlice";
+} from "@/store/projectSlice";
 import { RootState } from "@/store/store";
 import { ChevronDown, Edit2, Save, Download } from "lucide-react";
 import html2canvas from "html2canvas";
@@ -20,6 +22,7 @@ import { StyleProps } from "@/types";
 
 export default function EditorPage() {
   const params = useParams();
+  const router = useRouter();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [expandedSections, setExpandedSections] = useState<Set<string>>(
     new Set(["name"])
@@ -27,23 +30,36 @@ export default function EditorPage() {
 
   const dispatch = useDispatch();
   const resumeRef = useRef<HTMLDivElement>(null);
-  const currentTemplate = useSelector(
-    (state: RootState) => state.resume.data.template
+  
+  const currentProjectId = useSelector((state: RootState) => state.projects.currentProjectId);
+  const currentProject = useSelector((state: RootState) => 
+    currentProjectId ? state.projects.projects[currentProjectId] : null
   );
-  const resumeTitle = useSelector(
-    (state: RootState) => state.resume.data.title
-  );
-  const styles = useSelector((state: RootState) => state.resume.styles);
 
   useEffect(() => {
     if (params?.templateId) {
-      dispatch(setTemplate(params.templateId as string));
+      const templateId = params.templateId as string;
+      
+      // If no current project or coming from templates page, create new project
+      if (!currentProject || currentProject.template !== templateId) {
+        dispatch(createProject({ template: templateId, name: "My Resume" }));
+      }
     }
-  }, [params, dispatch]);
+  }, [params]);
+
+  if (!currentProject) {
+    return (
+      <div className="h-screen flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   const renderTemplate = () => {
-    const styleProps: StyleProps = { ...styles };
-    switch (currentTemplate) {
+    const styleProps: StyleProps = { ...currentProject.styles };
+    switch (currentProject.template) {
       case "modern":
         return <ModernTemplate {...styleProps} />;
       case "creative":
@@ -82,7 +98,7 @@ export default function EditorPage() {
       if (y < imgHeight) pdf.addPage();
     }
 
-    pdf.save(`${resumeTitle || "My_Resume"}.pdf`);
+    pdf.save(`${currentProject.name || "My_Resume"}.pdf`);
   };
 
   const templates = [
@@ -99,7 +115,7 @@ export default function EditorPage() {
     },
   ];
 
-  const currentTemplateInfo = templates.find((t) => t.id === currentTemplate);
+  const currentTemplateInfo = templates.find((t) => t.id === currentProject.template);
 
   const toggleSection = (section: string) => {
     setExpandedSections((prev) => {
@@ -118,15 +134,18 @@ export default function EditorPage() {
           {/* Left Panel */}
           <div className="w-80 bg-white border-r border-gray-200 overflow-y-auto">
             <div className="p-4 space-y-4">
-              {/* ✅ Editable Title */}
+              {/* Editable Title */}
               <div>
                 <h2 className="text-sm font-semibold text-gray-900 mb-1 px-2 flex items-center gap-1">
                   <Edit2 className="w-3.5 h-3.5" /> Resume Title
                 </h2>
                 <input
                   type="text"
-                  value={resumeTitle}
-                  onChange={(e) => dispatch(updateResumeTitle(e.target.value))}
+                  value={currentProject.name}
+                  onChange={(e) => dispatch(updateProjectName({ 
+                    projectId: currentProject.id, 
+                    name: e.target.value 
+                  }))}
                   className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-[#10B981] focus:outline-none"
                   placeholder="Enter resume title..."
                 />
@@ -162,11 +181,14 @@ export default function EditorPage() {
                         <button
                           key={template.id}
                           onClick={() => {
-                            dispatch(setTemplate(template.id));
+                            dispatch(updateProjectTemplate({ 
+                              projectId: currentProject.id, 
+                              template: template.id 
+                            }));
                             setIsDropdownOpen(false);
                           }}
                           className={`w-full px-3 py-2 text-left hover:bg-gray-50 ${
-                            currentTemplate === template.id
+                            currentProject.template === template.id
                               ? "bg-[#10B981]/10 border-r-2 border-[#10B981]"
                               : ""
                           }`}
@@ -253,7 +275,7 @@ export default function EditorPage() {
               <div className="space-y-2 pt-2">
                 <button
                   className="w-full px-4 py-2 cursor-pointer bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 flex items-center justify-center gap-2 text-sm"
-                  onClick={() => dispatch(resetStyles())}
+                  onClick={() => dispatch(resetStyles(currentProject.id))}
                 >
                   Reset Style
                 </button>
