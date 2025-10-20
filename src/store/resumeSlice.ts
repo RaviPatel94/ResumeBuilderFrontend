@@ -1,6 +1,6 @@
 // store/resumeSlice.ts
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
-import { ResumeData, Section, StyleProps } from '@/types';
+import { ResumeData, metadata, StyleProps } from '@/types';
 
 
 const defaultStyles: StyleProps = {
@@ -55,19 +55,29 @@ const defaultResume: ResumeData = {
       content:
         "Resume Builder App - Next.js, TypeScript, Tailwind CSS. Interactive resume builder with multiple templates and PDF export functionality. Customer Analytics Dashboard - React, Chart.js, PostgreSQL. Data visualization dashboard for tracking customer metrics and KPIs.",
     },
+    {
+      id: "skills",
+      title: "skills",
+      content:
+        "Next.js, TypeScript, Tailwind CSS, Website Development",
+    },
   ],
-  skills: ["Java", "Node.js", "Website Development"],
 };
+
+const data : metadata = {
+  title : "resume",
+  template : "classic"
+}
 
 interface ResumeState {
   resume: ResumeData;
-  currentTemplate: string;
+  data: metadata;
   styles: StyleProps;
 }
 
 const initialState: ResumeState = {
   resume: defaultResume,
-  currentTemplate: "classic",
+  data: data,
   styles: defaultStyles,
 }
 
@@ -95,13 +105,13 @@ const resumeSlice = createSlice({
         state.resume.sections.splice(index + 1, 0, newSection);
       }
     },
-    setSkills(state, action: PayloadAction<string[]>) {
-      state.resume.skills = action.payload;
-    },
     updateContact(state, action: PayloadAction<{ field: keyof ResumeData['contact']; value: string }>) {
       if (state.resume.contact) {
         (state.resume.contact as any)[action.payload.field] = action.payload.value;
       }
+    },
+     updateResumeTitle(state, action: PayloadAction<string>) {
+      state.data.title = action.payload;
     },
     updateSection(state, action: PayloadAction<{ id: string; field: 'title' | 'content'; value: string }>) {
       const section = state.resume.sections.find(s => s.id === action.payload.id);
@@ -110,7 +120,7 @@ const resumeSlice = createSlice({
       }
     },
     setTemplate(state, action: PayloadAction<string>) {
-      state.currentTemplate = action.payload;
+      state.data.template = action.payload;
     },
     updateStyles(state, action: PayloadAction<Partial<StyleProps>>) {
       state.styles = { ...state.styles, ...action.payload };
@@ -144,7 +154,6 @@ export const {
   updateResume, 
   deleteSection, 
   duplicateSection, 
-  setSkills,
   updateContact,
   updateSection,
   setTemplate,
@@ -153,6 +162,7 @@ export const {
   resetStyles,
   moveSectionUp,
   moveSectionDown,
+  updateResumeTitle,
 } = resumeSlice.actions;
 
 export default resumeSlice.reducer;

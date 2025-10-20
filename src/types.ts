@@ -21,7 +21,6 @@ export interface ResumeData {
     linkedin?: string;
   };
   sections: Section[];
-  skills: String[];
 }
 
 export interface Contact {
@@ -37,6 +36,11 @@ export interface Resume {
   contact: Contact;
   sections: Section[];
   skills?: string[];
+}
+
+export interface metadata{
+  title : string;
+  template: string;
 }
 
 export interface StyleProps {

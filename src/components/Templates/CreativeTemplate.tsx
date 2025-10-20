@@ -62,14 +62,6 @@ export default function CreativeTemplate({
     }));
   };
 
-  const handleSkillChange = (index: number, value: string) => {
-    const newSkills = [...(resume.skills || [])];
-    newSkills[index] = value;
-    dispatch(updateResume({
-      ...resume,
-      skills: newSkills
-    }));
-  };
 
   React.useEffect(() => {
     const calculatePageBreaks = () => {
@@ -105,7 +97,7 @@ export default function CreativeTemplate({
       window.removeEventListener('resize', calculatePageBreaks);
       observer.disconnect();
     };
-  }, [resume.sections, resume.skills]);
+  }, [resume.sections]);
 
   return (
     <div ref={contentRef} className="w-[816px] min-h-[1056px] mx-auto bg-white shadow-lg overflow-hidden flex flex-col">
@@ -218,39 +210,6 @@ export default function CreativeTemplate({
           </div>
         )}
 
-        {/* Skills Section */}
-        {resume.skills && resume.skills.length > 0 && (
-          <div className="mb-8">
-            <h3
-              className="mb-4 pb-2 border-b-2 border-pink-300"
-              style={{ 
-                color: headerColor,
-                fontSize: `${headerSize}px`,
-                fontWeight: headerBold ? 'bold' : 'normal'
-              }}
-            >
-              SKILLS
-            </h3>
-            <div className="flex flex-wrap gap-2 justify-center">
-              {resume.skills.map((skill, idx) => (
-                <span
-                  key={idx}
-                  className="px-3 py-1.5 rounded-full bg-gradient-to-r from-purple-100 to-pink-100 border border-purple-200"
-                  style={{ 
-                    color: bodyColor,
-                    fontSize: `${bodySize}px`,
-                    fontWeight: bodyBold ? 'bold' : 'normal'
-                  }}
-                  contentEditable
-                  suppressContentEditableWarning={true}
-                  onBlur={(e) => handleSkillChange(idx, e.currentTarget.textContent || '')}
-                >
-                  {skill}
-                </span>
-              ))}
-            </div>
-          </div>
-        )}
 
         {/* Main Sections */}
         {resume.sections.map((section, index) => (

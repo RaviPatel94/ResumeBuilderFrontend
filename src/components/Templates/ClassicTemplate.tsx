@@ -62,15 +62,6 @@ export default function ClassicTemplate({
     }));
   };
 
-  const handleSkillChange = (index: number, value: string) => {
-    const newSkills = [...(resume.skills || [])];
-    newSkills[index] = value;
-    dispatch(updateResume({
-      ...resume,
-      skills: newSkills
-    }));
-  };
-
   React.useEffect(() => {
     const calculatePageBreaks = () => {
       if (!contentRef.current) return;
@@ -113,7 +104,7 @@ export default function ClassicTemplate({
       window.removeEventListener('resize', calculatePageBreaks);
       observer.disconnect();
     };
-  }, [resume.sections, resume.skills]);
+  }, [resume.sections]);
 
   return (
     <div ref={contentRef} className="w-[816px] min-h-[1056px] relative mx-auto bg-white border-2 border-black overflow-hidden flex flex-col">
@@ -246,39 +237,7 @@ export default function ClassicTemplate({
           </React.Fragment>
         ))}
 
-        {/* Skills Section */}
-        {resume.skills && resume.skills.length > 0 && (
-          <div>
-            <h3 
-              className="font-serif uppercase tracking-wider mb-3 text-center"
-              style={{ 
-                color: headerColor,
-                fontSize: `${headerSize}px`,
-                fontWeight: headerBold ? 'bold' : 'normal'
-              }}
-            >
-              SKILLS
-            </h3>
-            <div className="flex flex-wrap gap-2 justify-center">
-              {resume.skills.map((skill, idx) => (
-                <span
-                  key={idx}
-                  className="bg-gray-200 px-3 py-1 rounded font-mono"
-                  style={{ 
-                    color: bodyColor,
-                    fontSize: `${bodySize}px`,
-                    fontWeight: bodyBold ? 'bold' : 'normal'
-                  }}
-                  contentEditable
-                  suppressContentEditableWarning={true}
-                  onBlur={(e) => handleSkillChange(idx, e.currentTarget.textContent || '')}
-                >
-                  {skill}
-                </span>
-              ))}
-            </div>
-          </div>
-        )}
+
       </div>
     </div>
   );

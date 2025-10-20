@@ -62,15 +62,6 @@ export default function ModernTemplate({
     }));
   };
 
-  const handleSkillChange = (index: number, value: string) => {
-    const newSkills = [...(resume.skills || [])];
-    newSkills[index] = value;
-    dispatch(updateResume({
-      ...resume,
-      skills: newSkills
-    }));
-  };
-
   React.useEffect(() => {
     const calculatePageBreaks = () => {
       if (!contentRef.current) return;
@@ -105,7 +96,7 @@ export default function ModernTemplate({
       window.removeEventListener('resize', calculatePageBreaks);
       observer.disconnect();
     };
-  }, [resume.sections, resume.skills]);
+  }, [resume.sections]);
 
   return (
     <div ref={contentRef} className="w-[816px] min-h-[1056px] mx-auto bg-white shadow-2xl border border-gray-200 overflow-visible flex flex-col">
@@ -198,38 +189,7 @@ export default function ModernTemplate({
               </span>
             </div>
           )}
-          {/* Skills */}
-          {resume.skills && resume.skills.length > 0 && (
-            <div className="mb-6">
-              <h3 
-                className="text-gray-500 uppercase tracking-wider mb-3"
-                style={{ 
-                  color: headerColor,
-                  fontSize: `${headerSize}px`,
-                  fontWeight: headerBold ? 'bold' : 'normal'
-                }}
-              >
-                Skills
-              </h3>
-              <div className="flex flex-wrap gap-2">
-                {resume.skills.map((skill, index) => (
-                  <span
-                    key={index}
-                    className="px-2 py-1 bg-black text-white font-medium"
-                    style={{ 
-                      fontSize: `${bodySize}px`,
-                      fontWeight: bodyBold ? 'bold' : 'normal'
-                    }}
-                    contentEditable
-                    suppressContentEditableWarning={true}
-                    onBlur={(e) => handleSkillChange(index, e.currentTarget.textContent || '')}
-                  >
-                    {skill}
-                  </span>
-                ))}
-              </div>
-            </div>
-          )}
+
           {resume.sections.map((section: Section, index: number) => (
             <React.Fragment key={section.id}>
               {pageBreaks.includes(index) && (
