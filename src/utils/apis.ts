@@ -1,5 +1,5 @@
 // utils/api.ts
-const API_URL = 'http://localhost:5000/api';
+const API_URL = 'https://resumebuilderbackend-z2zv.onrender.com/api';
 
 const getAuthHeaders = () => {
   const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
