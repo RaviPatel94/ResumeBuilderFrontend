@@ -11,3 +11,26 @@ To run locally: Frontend → `cd frontend && npm install && npm run dev` (http:/
 **API Endpoints:** POST `/api/auth/register` to register a new user, POST `/api/auth/login` to authenticate user, GET `/api/user/profile` to get user data (protected), GET `/api/projects/metadata` to get metadata for all projects, GET `/api/projects/:id` to get a project by ID, POST `/api/projects/` to create a project, PUT `/api/projects/:id` to update a project, DELETE `/api/projects/:id` to delete a project. **Base URL:** `https://resumebuilderbackend-z2zv.onrender.com/api`  
 
 The app is deployed with the frontend on Vercel, backend on Render, and database on Supabase.
+
+## 📦 Database Schema (Simplified)
+
+**Users Table**  
+- `id` (Primary Key)  
+- `email` (Unique)  
+- `password`  
+- `projects_metadata` (JSON)  
+- `created_at`  
+
+**Projects Table**  
+- `id` (Primary Key)  
+- `user_id` (Foreign Key → Users.id)  
+- `name`  
+- `template`  
+- `resume` (JSON)  
+- `styles` (JSON)  
+- `created_at`  
+- `updated_at`  
+
+**Relationships:**  
+- Each project belongs to a user  
+- Deleting a user deletes all their projects
