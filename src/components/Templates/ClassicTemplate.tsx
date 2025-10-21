@@ -36,9 +36,7 @@ export default function ClassicTemplate({
   const [pageBreaks, setPageBreaks] = React.useState<number[]>([]);
   const contentRef = React.useRef<HTMLDivElement>(null);
 
-  if (!currentProject) return null;
-
-  const resume = currentProject.resume;
+  const resume = currentProject?.resume;
 
   const handleDelete = (id: string) => {
     dispatch(deleteSection(id));
@@ -58,6 +56,7 @@ export default function ClassicTemplate({
 
   // Text change handlers
   const handleTextChange = (type: 'name' | 'title', value: string) => {
+    if (!resume) return;
     dispatch(updateProjectResume({
       ...resume,
       [type]: value
@@ -65,6 +64,7 @@ export default function ClassicTemplate({
   };
 
   const handleContactChange = (field: 'email' | 'phone' | 'location' | 'linkedin', value: string) => {
+    if (!resume) return;
     dispatch(updateProjectResume({
       ...resume,
       contact: {
@@ -75,6 +75,7 @@ export default function ClassicTemplate({
   };
 
   const handleSectionChange = (sectionId: string, field: 'title' | 'content', value: string) => {
+    if (!resume) return;
     dispatch(updateProjectResume({
       ...resume,
       sections: resume.sections.map((section: Section) =>
@@ -87,7 +88,7 @@ export default function ClassicTemplate({
 
   React.useEffect(() => {
     const calculatePageBreaks = () => {
-      if (!contentRef.current) return;
+      if (!contentRef.current || !resume) return;
 
       const PAGE_HEIGHT = 1056;
       const HEADER_HEIGHT = contentRef.current.querySelector('.resume-header')?.clientHeight || 0;
@@ -127,7 +128,10 @@ export default function ClassicTemplate({
       window.removeEventListener('resize', calculatePageBreaks);
       observer.disconnect();
     };
-  }, [resume.sections]);
+  }, [resume?.sections]);
+
+  // Move the early return AFTER all hooks
+  if (!currentProject || !resume) return null;
 
   return (
     <div ref={contentRef} className="w-[816px] min-h-[1056px] relative mx-auto bg-white border-2 border-black overflow-hidden flex flex-col">
