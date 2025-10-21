@@ -20,7 +20,7 @@ const defaultStyles: StyleProps = {
   bodyBold: false,
 };
 
-const defaultResume: ResumeData = {
+export const defaultResume: ResumeData = {
   name: "Ravi Patel",
   title: "Frontend Developer",
   contact: {
@@ -64,170 +64,143 @@ const defaultResume: ResumeData = {
 };
 
 interface ProjectsState {
-  projects: Record<string, Project>;
-  currentProjectId: string | null;
-  projectOrder: string[];
+  currentProject: Project | null;
 }
 
 const initialState: ProjectsState = {
-  projects: {},
-  currentProjectId: null,
-  projectOrder: [],
+  currentProject: null,
 };
 
 const projectsSlice = createSlice({
   name: 'projects',
   initialState,
   reducers: {
-    createProject(state, action: PayloadAction<{ template: string; name?: string }>) {
-      const projectId = `project-${Date.now()}`;
-      const now = Date.now();
-      
-      const newProject: Project = {
-        id: projectId,
-        name: action.payload.name || "Untitled Resume",
-        template: action.payload.template,
-        resume: { ...defaultResume },
-        styles: { ...defaultStyles },
-        createdAt: now,
-        updatedAt: now,
-      };
-      
-      state.projects[projectId] = newProject;
-      state.projectOrder.unshift(projectId);
-      state.currentProjectId = projectId;
+    // Load project from backend
+    setCurrentProject(state, action: PayloadAction<Project>) {
+      state.currentProject = action.payload;
     },
     
-    setCurrentProject(state, action: PayloadAction<string>) {
-      if (state.projects[action.payload]) {
-        state.currentProjectId = action.payload;
+    // Clear current project
+    clearCurrentProject(state) {
+      state.currentProject = null;
+    },
+    
+    // Update project name
+    updateProjectName(state, action: PayloadAction<string>) {
+      if (state.currentProject) {
+        state.currentProject.name = action.payload;
+        state.currentProject.updatedAt = Date.now();
       }
     },
     
-    updateProjectName(state, action: PayloadAction<{ projectId: string; name: string }>) {
-      const project = state.projects[action.payload.projectId];
-      if (project) {
-        project.name = action.payload.name;
-        project.updatedAt = Date.now();
+    // Update resume data
+    updateProjectResume(state, action: PayloadAction<ResumeData>) {
+      if (state.currentProject) {
+        state.currentProject.resume = action.payload;
+        state.currentProject.updatedAt = Date.now();
       }
     },
     
-    updateProjectResume(state, action: PayloadAction<{ projectId: string; resume: ResumeData }>) {
-      const project = state.projects[action.payload.projectId];
-      if (project) {
-        project.resume = action.payload.resume;
-        project.updatedAt = Date.now();
+    // Update template
+    updateProjectTemplate(state, action: PayloadAction<string>) {
+      if (state.currentProject) {
+        state.currentProject.template = action.payload;
+        state.currentProject.updatedAt = Date.now();
       }
     },
     
-    updateProjectTemplate(state, action: PayloadAction<{ projectId: string; template: string }>) {
-      const project = state.projects[action.payload.projectId];
-      if (project) {
-        project.template = action.payload.template;
-        project.updatedAt = Date.now();
+    // Update styles
+    updateProjectStyles(state, action: PayloadAction<Partial<StyleProps>>) {
+      if (state.currentProject) {
+        state.currentProject.styles = { ...state.currentProject.styles, ...action.payload };
+        state.currentProject.updatedAt = Date.now();
       }
     },
     
-    updateProjectStyles(state, action: PayloadAction<{ projectId: string; styles: Partial<StyleProps> }>) {
-      const project = state.projects[action.payload.projectId];
-      if (project) {
-        project.styles = { ...project.styles, ...action.payload.styles };
-        project.updatedAt = Date.now();
-      }
-    },
-    
-    deleteProject(state, action: PayloadAction<string>) {
-      delete state.projects[action.payload];
-      state.projectOrder = state.projectOrder.filter(id => id !== action.payload);
-      if (state.currentProjectId === action.payload) {
-        state.currentProjectId = state.projectOrder[0] || null;
-      }
-    },
-    
-    deleteSection(state, action: PayloadAction<{ projectId: string; sectionId: string }>) {
-      const project = state.projects[action.payload.projectId];
-      if (project) {
-        project.resume.sections = project.resume.sections.filter(
-          section => section.id !== action.payload.sectionId
+    // Delete section
+    deleteSection(state, action: PayloadAction<string>) {
+      if (state.currentProject) {
+        state.currentProject.resume.sections = state.currentProject.resume.sections.filter(
+          section => section.id !== action.payload
         );
-        project.updatedAt = Date.now();
+        state.currentProject.updatedAt = Date.now();
       }
     },
     
-    duplicateSection(state, action: PayloadAction<{ projectId: string; sectionId: string }>) {
-      const project = state.projects[action.payload.projectId];
-      if (project) {
-        const section = project.resume.sections.find(
-          section => section.id === action.payload.sectionId
+    // Duplicate section
+    duplicateSection(state, action: PayloadAction<string>) {
+      if (state.currentProject) {
+        const section = state.currentProject.resume.sections.find(
+          section => section.id === action.payload
         );
         if (section) {
           const newSection = { ...section, id: `${section.id}-${Date.now()}` };
-          const index = project.resume.sections.findIndex(
+          const index = state.currentProject.resume.sections.findIndex(
             sec => sec.id === section.id
           );
-          project.resume.sections.splice(index + 1, 0, newSection);
-          project.updatedAt = Date.now();
+          state.currentProject.resume.sections.splice(index + 1, 0, newSection);
+          state.currentProject.updatedAt = Date.now();
         }
       }
     },
     
-    updateContact(state, action: PayloadAction<{ projectId: string; field: string; value: string }>) {
-      const project = state.projects[action.payload.projectId];
-      if (project && project.resume.contact) {
-        (project.resume.contact as any)[action.payload.field] = action.payload.value;
-        project.updatedAt = Date.now();
+    // Update contact
+    updateContact(state, action: PayloadAction<{ field: string; value: string }>) {
+      if (state.currentProject?.resume.contact) {
+        (state.currentProject.resume.contact as any)[action.payload.field] = action.payload.value;
+        state.currentProject.updatedAt = Date.now();
       }
     },
     
-    updateSection(state, action: PayloadAction<{ projectId: string; id: string; field: 'title' | 'content'; value: string }>) {
-      const project = state.projects[action.payload.projectId];
-      if (project) {
-        const section = project.resume.sections.find(s => s.id === action.payload.id);
+    // Update section
+    updateSection(state, action: PayloadAction<{ id: string; field: 'title' | 'content'; value: string }>) {
+      if (state.currentProject) {
+        const section = state.currentProject.resume.sections.find(s => s.id === action.payload.id);
         if (section) {
           section[action.payload.field] = action.payload.value;
-          project.updatedAt = Date.now();
+          state.currentProject.updatedAt = Date.now();
         }
       }
     },
     
-    updateSingleStyle(state, action: PayloadAction<{ projectId: string; key: keyof StyleProps; value: string | number | boolean }>) {
-      const project = state.projects[action.payload.projectId];
-      if (project) {
-        (project.styles as any)[action.payload.key] = action.payload.value;
-        project.updatedAt = Date.now();
+    // Update single style
+    updateSingleStyle(state, action: PayloadAction<{ key: keyof StyleProps; value: string | number | boolean }>) {
+      if (state.currentProject) {
+        (state.currentProject.styles as any)[action.payload.key] = action.payload.value;
+        state.currentProject.updatedAt = Date.now();
       }
     },
     
-    resetStyles(state, action: PayloadAction<string>) {
-      const project = state.projects[action.payload];
-      if (project) {
-        project.styles = { ...defaultStyles };
-        project.updatedAt = Date.now();
+    // Reset styles
+    resetStyles(state) {
+      if (state.currentProject) {
+        state.currentProject.styles = { ...defaultStyles };
+        state.currentProject.updatedAt = Date.now();
       }
     },
     
-    moveSectionUp(state, action: PayloadAction<{ projectId: string; sectionId: string }>) {
-      const project = state.projects[action.payload.projectId];
-      if (project) {
-        const index = project.resume.sections.findIndex(s => s.id === action.payload.sectionId);
+    // Move section up
+    moveSectionUp(state, action: PayloadAction<string>) {
+      if (state.currentProject) {
+        const index = state.currentProject.resume.sections.findIndex(s => s.id === action.payload);
         if (index > 0) {
-          const temp = project.resume.sections[index];
-          project.resume.sections[index] = project.resume.sections[index - 1];
-          project.resume.sections[index - 1] = temp;
-          project.updatedAt = Date.now();
+          const temp = state.currentProject.resume.sections[index];
+          state.currentProject.resume.sections[index] = state.currentProject.resume.sections[index - 1];
+          state.currentProject.resume.sections[index - 1] = temp;
+          state.currentProject.updatedAt = Date.now();
         }
       }
     },
     
-    moveSectionDown(state, action: PayloadAction<{ projectId: string; sectionId: string }>) {
-      const project = state.projects[action.payload.projectId];
-      if (project) {
-        const index = project.resume.sections.findIndex(s => s.id === action.payload.sectionId);
-        if (index < project.resume.sections.length - 1) {
-          const temp = project.resume.sections[index];
-          project.resume.sections[index] = project.resume.sections[index + 1];
-          project.resume.sections[index + 1] = temp;
-          project.updatedAt = Date.now();
+    // Move section down
+    moveSectionDown(state, action: PayloadAction<string>) {
+      if (state.currentProject) {
+        const index = state.currentProject.resume.sections.findIndex(s => s.id === action.payload);
+        if (index < state.currentProject.resume.sections.length - 1) {
+          const temp = state.currentProject.resume.sections[index];
+          state.currentProject.resume.sections[index] = state.currentProject.resume.sections[index + 1];
+          state.currentProject.resume.sections[index + 1] = temp;
+          state.currentProject.updatedAt = Date.now();
         }
       }
     },
@@ -235,13 +208,12 @@ const projectsSlice = createSlice({
 });
 
 export const {
-  createProject,
   setCurrentProject,
+  clearCurrentProject,
   updateProjectName,
   updateProjectResume,
   updateProjectTemplate,
   updateProjectStyles,
-  deleteProject,
   deleteSection,
   duplicateSection,
   updateContact,

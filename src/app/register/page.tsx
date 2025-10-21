@@ -3,6 +3,9 @@
 import { useState, FormEvent } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { useDispatch } from 'react-redux';
+import { loginUser } from '@/store/userSlice';
+import { AppDispatch } from '@/store/store';
 
 interface FormErrors {
   email?: string;
@@ -10,7 +13,7 @@ interface FormErrors {
   confirmPassword?: string;
 }
 
-export default function RegisterPage() {
+export default function RegisterForm() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -18,6 +21,7 @@ export default function RegisterPage() {
   const [serverError, setServerError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
+  const dispatch = useDispatch<AppDispatch>();
 
   const validateForm = (): boolean => {
     const newErrors: FormErrors = {};
@@ -67,15 +71,18 @@ export default function RegisterPage() {
         throw new Error(result.message || 'Registration failed');
       }
 
-      // Store token and user info (auto-login after registration)
-      localStorage.setItem('token', result.data.token);
-      localStorage.setItem('userEmail', result.data.user.email);
+      dispatch(loginUser({
+        id: result.data.user.id,
+        email: result.data.user.email,
+        token: result.data.token,
+      }));
 
-      // Redirect to dashboard
-      router.push('/templates');
+      // Wait 1 second before redirecting
+      setTimeout(() => {
+        router.push('/templates');
+      }, 1000);
     } catch (err: any) {
       setServerError(err.message);
-    } finally {
       setIsLoading(false);
     }
   };

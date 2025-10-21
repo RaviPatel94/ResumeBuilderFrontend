@@ -3,19 +3,23 @@
 import { useState, FormEvent } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { useDispatch } from 'react-redux';
+import { loginUser } from '@/store/userSlice';
+import { AppDispatch } from '@/store/store';
 
 interface FormErrors {
   email?: string;
   password?: string;
 }
 
-export default function LoginPage() {
+export default function LoginForm() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [errors, setErrors] = useState<FormErrors>({});
   const [serverError, setServerError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
+  const dispatch = useDispatch<AppDispatch>();
 
   const validateForm = (): boolean => {
     const newErrors: FormErrors = {};
@@ -28,6 +32,8 @@ export default function LoginPage() {
 
     if (!password) {
       newErrors.password = 'Password is required';
+    } else if (password.length < 4) {
+      newErrors.password = 'Password must be at least 4 characters';
     }
 
     setErrors(newErrors);
@@ -57,20 +63,22 @@ export default function LoginPage() {
         throw new Error(result.message || 'Login failed');
       }
 
-      // Store token and user info in localStorage
-      localStorage.setItem('token', result.data.token);
-      localStorage.setItem('userEmail', result.data.user.email);
-      localStorage.setItem('userId', result.data.user.id);
-      
+      dispatch(loginUser({
+        id: result.data.user.id,
+        email: result.data.user.email,
+        token: result.data.token,
+      }));
+
       if (result.data.projectsMetadata) {
         localStorage.setItem('projectsMetadata', JSON.stringify(result.data.projectsMetadata));
       }
 
-      // Redirect to dashboard
-      router.push('/templates');
+      // Wait 1 second before redirecting
+      setTimeout(() => {
+        router.push('/templates');
+      }, 1000);
     } catch (err: any) {
       setServerError(err.message);
-    } finally {
       setIsLoading(false);
     }
   };

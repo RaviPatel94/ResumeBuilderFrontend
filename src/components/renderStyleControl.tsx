@@ -31,10 +31,7 @@ const RenderStyleControl: React.FC<RenderStyleControlProps> = ({
 }) => {
   const dispatch = useDispatch();
   
-  const currentProjectId = useSelector((state: RootState) => state.projects.currentProjectId);
-  const currentProject = useSelector((state: RootState) => 
-    currentProjectId ? state.projects.projects[currentProjectId] : null
-  );
+  const currentProject = useSelector((state: RootState) => state.projects.currentProject);
 
   if (!currentProject) return null;
 
@@ -44,11 +41,7 @@ const RenderStyleControl: React.FC<RenderStyleControlProps> = ({
   const bold = styles[boldKey] as boolean;
 
   const handleStyleChange = (key: keyof StyleProps, value: string | number | boolean) => {
-    dispatch(updateSingleStyle({ 
-      projectId: currentProject.id, 
-      key, 
-      value 
-    }));
+    dispatch(updateSingleStyle({ key, value }));
   };
 
   return (
