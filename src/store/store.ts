@@ -7,7 +7,6 @@ import storage from 'redux-persist/lib/storage';
 const persistConfig = { 
   key: 'resumeBuilder', 
   storage,
-  whitelist: ['projects']
 };
 
 const persistedReducer = persistReducer(persistConfig, projectsReducer);
@@ -16,7 +15,9 @@ export const store = configureStore({
   reducer: { projects: persistedReducer },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
-      serializableCheck: false,
+      serializableCheck: {
+        ignoredActions: ['persist/PERSIST', 'persist/REHYDRATE'],
+      },
     }),
 });
 

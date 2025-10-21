@@ -2,9 +2,10 @@
 import { useRouter } from "next/navigation";
 import { useSelector, useDispatch } from "react-redux";
 import { RootState } from "@/store/store";
-import { setCurrentProject, deleteProject } from "@/store/projectSlice";
+import { setCurrentProject, deleteProject, createProject } from "@/store/projectSlice";
 import Navbar from "@/components/Navbar";
 import { Trash2 } from "lucide-react";
+import { useEffect } from "react";
 
 const templates = [
   { 
@@ -34,14 +35,33 @@ export default function TemplatesPage() {
   const projects = useSelector((state: RootState) => state.projects.projects);
   const projectOrder = useSelector((state: RootState) => state.projects.projectOrder);
 
+  // Debug: Log the state
+  useEffect(() => {
+    console.log("Projects:", projects);
+    console.log("Project Order:", projectOrder);
+  }, [projects, projectOrder]);
+
   const userProjects = projectOrder.map(id => projects[id]).filter(Boolean);
 
   const handleProjectClick = (projectId: string) => {
     const project = projects[projectId];
     if (project) {
       dispatch(setCurrentProject(projectId));
-      router.push(`/editor/${project.template}`);
+      // Small delay to ensure state is updated
+      setTimeout(() => {
+        router.push(`/editor/${project.template}`);
+      }, 100);
     }
+  };
+
+  const handleTemplateClick = (templateId: string) => {
+    // Create new project
+    dispatch(createProject({ template: templateId, name: "My Resume" }));
+    
+    // Wait for Redux to update, then navigate
+    setTimeout(() => {
+      router.push(`/editor/${templateId}`);
+    }, 100);
   };
 
   const handleDeleteProject = (e: React.MouseEvent, projectId: string) => {
@@ -64,7 +84,7 @@ export default function TemplatesPage() {
         {/* My Projects Section */}
         {userProjects.length > 0 && (
           <>
-            <h2 className="text-2xl font-bold text-gray-800 mb-6">My Projects</h2>
+            <h2 className="text-2xl font-bold text-gray-800 mb-6">My Projects ({userProjects.length})</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
               {userProjects.map((proj) => (
                 <div
@@ -105,7 +125,7 @@ export default function TemplatesPage() {
           {templates.map((tpl) => (
             <div key={tpl.id} className="group">
               <div
-                onClick={() => router.push(`/editor/${tpl.id}`)}
+                onClick={() => handleTemplateClick(tpl.id)}
                 className="cursor-pointer rounded-xl shadow-sm hover:shadow-md border border-gray-200 transition p-4 flex flex-col items-center"
               >
                 <img src={tpl.thumbnail} alt={tpl.name} className="rounded-md mb-3 w-full top-0 h-62 object-cover object-top" />

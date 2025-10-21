@@ -7,26 +7,27 @@ import ModernTemplate from "@/components/Templates/ModernTemplate";
 import CreativeTemplate from "@/components/Templates/CreativeTemplate";
 import { useDispatch, useSelector } from "react-redux";
 import {
-  createProject,
-  setCurrentProject,
   updateProjectName,
   updateProjectTemplate,
   resetStyles,
 } from "@/store/projectSlice";
 import { RootState } from "@/store/store";
 import { ChevronDown, Edit2, Save, Download } from "lucide-react";
-import html2canvas from "html2canvas";
-import jsPDF from "jspdf";
 import RenderStyleControl from "@/components/renderStyleControl";
 import { StyleProps } from "@/types";
+import { pdf } from '@react-pdf/renderer';
+import ClassicPDFTemplate from "@/components/PdfTemplates/ClassicPdf";
+import ModernPDFTemplate from "@/components/PdfTemplates/ModernPdf";
+import CreativePDFTemplate from "@/components/PdfTemplates/CreativePdf";
+
 
 export default function EditorPage() {
-  const params = useParams();
   const router = useRouter();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [expandedSections, setExpandedSections] = useState<Set<string>>(
     new Set(["name"])
   );
+  const [isLoading, setIsLoading] = useState(true);
 
   const dispatch = useDispatch();
   const resumeRef = useRef<HTMLDivElement>(null);
@@ -36,70 +37,90 @@ export default function EditorPage() {
     currentProjectId ? state.projects.projects[currentProjectId] : null
   );
 
+  // Wait for redux-persist to rehydrate
   useEffect(() => {
-    if (params?.templateId) {
-      const templateId = params.templateId as string;
-      
-      // If no current project or coming from templates page, create new project
-      if (!currentProject || currentProject.template !== templateId) {
-        dispatch(createProject({ template: templateId, name: "My Resume" }));
-      }
-    }
-  }, [params]);
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 500);
+    
+    return () => clearTimeout(timer);
+  }, []);
 
-  if (!currentProject) {
+  // Redirect if no project after loading
+  useEffect(() => {
+    if (!isLoading && !currentProjectId) {
+      console.log("No current project found, redirecting to templates...");
+      router.push("/templates");
+    }
+  }, [isLoading, currentProjectId, router]);
+
+  // Show loading while waiting for persist rehydration or if no project
+  if (isLoading || !currentProject) {
     return (
       <div className="h-screen flex items-center justify-center">
         <div className="text-center">
-          <p className="text-gray-600">Loading...</p>
+          <p className="text-gray-600">Loading project...</p>
         </div>
       </div>
     );
   }
 
-  const renderTemplate = () => {
-    const styleProps: StyleProps = { ...currentProject.styles };
-    switch (currentProject.template) {
-      case "modern":
-        return <ModernTemplate {...styleProps} />;
-      case "creative":
-        return <CreativeTemplate {...styleProps} />;
-      case "classic":
-      default:
-        return <ClassicTemplate {...styleProps} />;
-    }
-  };
+const renderTemplate = () => {
+  const styleProps: StyleProps = { ...currentProject.styles };
+  switch (currentProject.template) {
+    case "modern":
+      return <ModernTemplate {...styleProps} />; // Web template
+    case "creative":
+      return <CreativeTemplate {...styleProps} />; // Web template
+    case "classic":
+    default:
+      return <ClassicTemplate {...styleProps} />; // Web template
+  }
+};
 
   const handleSaveDraft = () => {
     console.log("Draft saved automatically via Redux Persist");
   };
 
-  const handleDownloadPDF = async () => {
-    const element = resumeRef.current;
-    if (!element) return;
+const handleDownloadPDF = async () => {
+  if (!currentProject) return;
 
-    const canvas = await html2canvas(element, { scale: 2, useCORS: true });
-    const imgData = canvas.toDataURL("image/png");
-    const pdf = new jsPDF({
-      orientation: "portrait",
-      unit: "px",
-      format: "a4",
-    });
+  try {
+    // Get the current resume and styles from Redux
+    const { resume, styles, template } = currentProject;
 
-    const pageWidth = pdf.internal.pageSize.getWidth();
-    const pageHeight = pdf.internal.pageSize.getHeight();
-    const imgWidth = pageWidth;
-    const imgHeight = (canvas.height * pageWidth) / canvas.width;
-
-    let y = 0;
-    while (y < imgHeight) {
-      pdf.addImage(imgData, "PNG", 0, -y, imgWidth, imgHeight);
-      y += pageHeight;
-      if (y < imgHeight) pdf.addPage();
+    // Select the appropriate PDF template based on current template
+    let PDFComponent;
+    switch (template) {
+      case 'modern':
+        PDFComponent = ModernPDFTemplate;
+        break;
+      case 'creative':
+        PDFComponent = CreativePDFTemplate;
+        break;
+      case 'classic':
+      default:
+        PDFComponent = ClassicPDFTemplate;
+        break;
     }
 
-    pdf.save(`${currentProject.name || "My_Resume"}.pdf`);
-  };
+    // Generate PDF blob - pass resume and styles as props
+    const blob = await pdf(
+      <PDFComponent resume={resume} styles={styles} />
+    ).toBlob();
+
+    // Download the PDF
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `${currentProject.name || 'Resume'}.pdf`;
+    link.click();
+    URL.revokeObjectURL(url);
+  } catch (error) {
+    console.error('PDF generation failed:', error);
+    alert('Failed to generate PDF. Please try again.');
+  }
+};
 
   const templates = [
     {
@@ -297,14 +318,15 @@ export default function EditorPage() {
             </div>
           </div>
           
-          <div className="flex-1 overflow-y-auto bg-gray-100 p-8">
-            <div
-              className="max-w-4xl mx-auto bg-white p-6 rounded-lg shadow"
-              ref={resumeRef}
-            >
-              {renderTemplate()}
-            </div>
+        <div className="flex-1 overflow-y-auto bg-gray-100 p-8">
+          <div
+            className="max-w-4xl mx-auto bg-white p-6 rounded-lg shadow"
+            ref={resumeRef}
+            data-resume-content
+          >
+            {renderTemplate()}
           </div>
+        </div>
         </div>
       </div>
     </div>
