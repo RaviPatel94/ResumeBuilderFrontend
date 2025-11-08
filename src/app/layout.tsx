@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import "./globals.css";
 import ReduxProvider from "@/store/provider";
 
-
 export const metadata: Metadata = {
   title: "Resume Builder",
   description: "Create customized resume for yourself",

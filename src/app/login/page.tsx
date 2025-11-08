@@ -73,10 +73,8 @@ export default function LoginForm() {
         localStorage.setItem('projectsMetadata', JSON.stringify(result.data.projectsMetadata));
       }
 
-      // Wait 1 second before redirecting
-      setTimeout(() => {
+   
         router.push('/templates');
-      }, 1000);
     } catch (err: any) {
       setServerError(err.message);
       setIsLoading(false);
