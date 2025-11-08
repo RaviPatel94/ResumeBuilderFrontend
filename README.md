@@ -1,36 +1,36 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🧾 Resume Builder
 
-## Getting Started
+A full-stack Resume Builder web application that lets users create, edit, and download professional resumes with live previews and secure authentication. 🚀 **Live Demo:** [resume-builder-frontend](https://resume-builder-frontend-45va.vercel.app/) | 🧠 **Backend API:** [API Link](https://resumebuilderbackend-z2zv.onrender.com/api) | 💻 **Backend Code:** [GitHub Repo](https://github.com/RaviPatel94/ResumeBuilderBackend)  
 
-First, run the development server:
+Frontend uses Next.js 15, TypeScript, Tailwind CSS, Redux Toolkit + Persist, and @react-pdf/renderer for PDF generation. Backend uses Express.js, JWT Authentication, Supabase, bcrypt.js, and is deployed on Render.  
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+Key features include user registration & login with JWT, real-time resume preview, PDF download, persistent user data with Supabase, and a responsive, minimalist UI.  
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+To run locally: Frontend → `cd frontend && npm install && npm run dev` (http://localhost:3000) | Backend → `cd backend && npm install && npm run dev` (http://localhost:5000)  
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+**API Endpoints:** POST `/api/auth/register` to register a new user, POST `/api/auth/login` to authenticate user, GET `/api/user/profile` to get user data (protected), GET `/api/projects/metadata` to get metadata for all projects, GET `/api/projects/:id` to get a project by ID, POST `/api/projects/` to create a project, PUT `/api/projects/:id` to update a project, DELETE `/api/projects/:id` to delete a project. **Base URL:** `https://resumebuilderbackend-z2zv.onrender.com/api`  
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+The app is deployed with the frontend on Vercel, backend on Render, and database on Supabase.
 
-## Learn More
+## 📦 Database Schema (Simplified)
 
-To learn more about Next.js, take a look at the following resources:
+**Users Table**  
+- `id` (Primary Key)  
+- `email` (Unique)  
+- `password`  
+- `projects_metadata` (JSON)  
+- `created_at`  
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+**Projects Table**  
+- `id` (Primary Key)  
+- `user_id` (Foreign Key → Users.id)  
+- `name`  
+- `template`  
+- `resume` (JSON)  
+- `styles` (JSON)  
+- `created_at`  
+- `updated_at`  
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+**Relationships:**  
+- Each project belongs to a user  
+- Deleting a user deletes all their projects
